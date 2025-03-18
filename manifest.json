@@ -1,0 +1,47 @@
+{
+  "manifest_version": 3,
+  "name": "super-grafx",
+  "version": "0.2",
+  "description": "A simple example extension unlock TCCC",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png",
+    "256": "icons/icon256.png"
+  },
+  "permissions": [
+    "activeTab",
+    "downloads",
+    "downloads.shelf",
+    "webRequest",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "file://*",
+    "*://*.chiligrafx.com/*",
+    "*://*.chili-publish.online/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "file://*",
+        "*://*.chiligrafx.com/*",
+        "*://*.chili-publish.online/*"
+      ],
+      "js": ["content.js"],
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["dist/index.js", "dist/index.css"],
+      "matches": [
+        "file://*",
+        "*://*.chiligrafx.com/*",
+        "*://*.chili-publish.online/*"
+      ]
+    }
+  ]
+}
