@@ -1,7 +1,7 @@
 // modalStore.ts
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
-import { type LayoutConfig } from "./layoutConfigTypes";
+import { type LayoutConfig, type ImageVariable, type DependentVar } from "./layoutConfigTypes";
 import { Result } from "typescript-result";
 import { type Doc } from "./docStateTypes";
 
@@ -10,7 +10,7 @@ interface AppStore {
   isToolbarVisible: boolean;
   isToolbarEnabled: boolean;
   isLayoutConfigLoaded: boolean;
-  errors: { error: Error, state: AppStore }[];
+  errors: { error: Error; state: AppStore }[];
   documentState: Doc;
   layoutConfigs: LayoutConfig[];
   showModal: () => void;
@@ -19,7 +19,15 @@ interface AppStore {
   hideToolbar: () => void;
   enableToolbar: () => void;
   disableToolbar: () => void;
-  updateLayoutConfig: (data: { id: string, layoutIds: string[] }) => void;
+  setLayoutIdsOnLayoutConfig: (data: {
+    configId: string;
+    layoutIds: string[];
+  }) => void;
+  addImageVariableOnLayoutConfig: (data: {
+    configId: string;
+    imageVariable: ImageVariable;
+  }) => void;
+updateDependent: (data:{configId:string, imageVariableId:string, dependent:DependentVar}) =>void,
   loadLayoutConfigs: (configs: LayoutConfig[]) => void;
   raiseError: (error: Result<any, Error>) => void;
   saveLayoutConfig: () => void;
@@ -31,7 +39,7 @@ const saveLayoutConfigToJSON = (config: LayoutConfig[]) => {
   // To be implemented
 };
 
-export const useAppStore = () => appStore() as AppStore
+export const useAppStore = () => appStore() as AppStore;
 
 export const appStore = create<AppStore>()(
   immer((set, get) => ({
@@ -40,23 +48,22 @@ export const appStore = create<AppStore>()(
     isToolbarEnabled: true,
     isLayoutConfigLoaded: false,
     errors: [],
-    documentState:
-    {
+    documentState: {
       layouts: [
         {
           name: "Parent",
-          id: "0"
+          id: "0",
         },
 
         {
           name: "Push",
           id: "1",
-          parentId: "0"
+          parentId: "0",
         },
         {
           name: "Pull",
           id: "6",
-          parentId: "0"
+          parentId: "0",
         },
       ],
       variables: [
@@ -65,21 +72,21 @@ export const appStore = create<AppStore>()(
           id: "img1",
           type: "image",
           name: "Header Logo",
-          value: "https://example.com/images/logo.png"
+          value: "https://example.com/images/logo.png",
         },
         {
           id: "img2",
           type: "image",
           name: "Profile Picture",
-          value: "https://example.com/images/profile.jpg"
+          value: "https://example.com/images/profile.jpg",
         },
         {
           id: "img3",
           type: "image",
           name: "Background Image",
-          value: "https://example.com/images/background.jpg"
+          value: "https://example.com/images/background.jpg",
         },
-        
+
         // 2 list variables
         {
           id: "list1",
@@ -91,8 +98,8 @@ export const appStore = create<AppStore>()(
             { value: "ca", displayValue: "Canada" },
             { value: "uk", displayValue: "United Kingdom" },
             { value: "au", displayValue: "Australia" },
-            { value: "de", displayValue: "Germany" }
-          ]
+            { value: "de", displayValue: "Germany" },
+          ],
         },
         {
           id: "list2",
@@ -103,39 +110,37 @@ export const appStore = create<AppStore>()(
             { value: "financial", displayValue: "Financial Documents" },
             { value: "legal", displayValue: "Legal Documents" },
             { value: "medical", displayValue: "Medical Records" },
-            { value: "educational", displayValue: "Educational Documents" }
-          ]
+            { value: "educational", displayValue: "Educational Documents" },
+          ],
         },
-        
+
         // 3 shortText variables (1 requested + 2 additional to reach 8 total)
         {
           id: "text1",
           type: "shortText",
           name: "Document Title",
-          value: "Quarterly Financial Report"
+          value: "Quarterly Financial Report",
         },
         {
           id: "text2",
           type: "shortText",
           name: "Author Name",
-          value: "Jane Doe"
+          value: "Jane Doe",
         },
         {
           id: "text3",
           type: "shortText",
           name: "Department",
-          value: "Finance"
-        }
-                
-      ]
-
+          value: "Finance",
+        },
+      ],
     },
     layoutConfigs: [
       {
         id: "",
         layoutIds: [],
-        variables: {},
-      }
+        variables: [],
+      },
     ],
     showModal: () =>
       set((state) => {
@@ -162,21 +167,73 @@ export const appStore = create<AppStore>()(
       set((state) => {
         state.isToolbarEnabled = false;
       }),
-    updateLayoutConfig: ({ id, layoutIds }) =>
+    setLayoutIdsOnLayoutConfig: ({ configId, layoutIds }) =>
       set((state) => {
         if (state.isLayoutConfigLoaded) {
-          const targetLayout = state.layoutConfigs.find(layout => layout.id == id);
+          const targetLayout = state.layoutConfigs.find(
+            (layout) => layout.id == configId,
+          );
           if (targetLayout) targetLayout.layoutIds = layoutIds;
         }
       }),
-    loadLayoutConfigs: (configs) =>
+    addImageVariableOnLayoutConfig: ({ configId, imageVariable }) =>
+      set((state) => {
+        if (state.isLayoutConfigLoaded) {
+          const targetLayout = state.layoutConfigs.find(
+            (layout) => layout.id == configId,
+          );
+          console.log("tartget Layout", targetLayout);
+          if (targetLayout) {
+            const imageVariableIndex = targetLayout.variables.findIndex(
+              (imgVar) => imgVar.id == imageVariable.id,
+            );
+
+            if (imageVariableIndex == -1) {
+              targetLayout.variables.push(imageVariable);
+            } else {
+              targetLayout.variables[imageVariableIndex] = imageVariable;
+            }
+          }
+        }
+      }),
+    updateDependent: ({configId, imageVariableId, dependent}) =>
+      set((state) => {
+        if (state.isLayoutConfigLoaded) {
+          const targetLayout = state.layoutConfigs.find(
+            (layout) => layout.id == configId,
+          );
+          
+          if (targetLayout) {
+            const imageVariable = targetLayout.variables.find(
+              (imgVar) => imgVar.id == imageVariableId,
+            );
+            
+            if (imageVariable) {
+              const dependentIndex = imageVariable.dependents.findIndex(
+                (dep) => dep.variableId == dependent.variableId,
+              );
+              
+              if (dependentIndex == -1) {
+                // Add new dependent if it doesn't exist
+                imageVariable.dependents.push(dependent);
+              } else {
+                // Update existing dependent
+                imageVariable.dependents[dependentIndex] = dependent;
+              }
+            }
+          }
+        }
+      }),
+    loadLayoutConfigs: (configs: LayoutConfig[]) =>
       set((state) => {
         if (!state.isLayoutConfigLoaded) state.isLayoutConfigLoaded = true;
         // Object.assign(state.layoutConfigs[], config);
         state.layoutConfigs = configs;
       }),
     raiseError: (error) => {
-      error.onFailure(error => set((state) => state.errors.push({ error, state })))
+      error.onFailure((error) =>
+        set((state) => state.errors.push({ error, state })),
+      );
     },
     saveLayoutConfig: () => {
       const { layoutConfigs: layoutConfig } = get();
@@ -185,4 +242,6 @@ export const appStore = create<AppStore>()(
   })),
 );
 
-appStore.subscribe((state, oldState) => console.log('state', state, 'oldState', oldState));
+appStore.subscribe((state, oldState) =>
+  console.log("state", state, "oldState", oldState),
+);

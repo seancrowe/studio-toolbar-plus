@@ -19,19 +19,21 @@ export type Variable = {
   transform: TransformCommands[];
 };
 
-export type DependentVarIds = string[];
+export type DependentVar = {
+  variableId: string;
+  values: string[];
+};
 
-export type Variables = {
-  [id: string]: {
-    dependents: DependentVarIds;
-    useFolderPath: boolean;
-    folderPath: string;
-    imageName: (string | Variable)[];
-  };
+export type ImageVariable = {
+  id: string;
+  dependents: DependentVar[];
+  useFolderPath: boolean;
+  folderPath: string;
+  imageName: (string | Variable)[];
 };
 
 export type LayoutConfig = {
   id: string;
   layoutIds: string[];
-  variables: Variables;
+  variables: ImageVariable[];
 };

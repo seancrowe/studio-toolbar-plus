@@ -6,7 +6,7 @@ export type Layout = {
 
 export type Variable =  {
   id: string;
-  type: "image" | "shortText";
+  type: "image" | "shortText" | "boolean";
   name: string;
   value: string;
 } | {

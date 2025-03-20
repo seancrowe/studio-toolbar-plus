@@ -1,9 +1,23 @@
 import { type LayoutConfig } from "../layoutConfigTypes";
 import { useAppStore } from "../modalStore";
 import { loadConfigFromDoc } from "../studio/layoutConfigHandler";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import { Result } from "typescript-result";
 import styled from "styled-components";
-import { Button, Group, MantineProvider, Stack, Paper, Title, Divider, Modal, Text, Select } from "@mantine/core";
+import {
+  Button,
+  Group,
+  MantineProvider,
+  Stack,
+  Paper,
+  Title,
+  Divider,
+  Modal,
+  Text,
+  Select,
+  Grid,
+  MultiSelect,
+} from "@mantine/core";
 import { LayoutMultiSelect } from "./LayoutMultiSelect";
 
 const ModalOverlay = styled.div`
@@ -65,20 +79,37 @@ const LoadingSpinner = styled.div`
   }
 
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `;
 
 type LayoutConfigEditorProps = {
-  onExportCSV: () => void
+  onExportCSV: () => void;
   // config: LayoutConfig;
   // onChange: (updatedConfig: LayoutConfig) => void;
-}
+};
 
 export const LayoutConfigModal: React.FC<LayoutConfigEditorProps> = ({
   onExportCSV = () => console.log("Export CSV clicked"),
 }) => {
+  // State for the Add Variable modal
+  const [isAddVariableModalOpen, setIsAddVariableModalOpen] = useState(false);
+  const [selectedImageVariable, setSelectedImageVariable] = useState<
+    string | null
+  >(null);
+  const [currentConfigIndex, setCurrentConfigIndex] = useState<number>(-1);
+
+  // State for the Add Dependent modal
+  const [isAddDependentModalOpen, setIsAddDependentModalOpen] = useState(false);
+  const [selectedDependentVariable, setSelectedDependentVariable] = useState<
+    string | null
+  >(null);
+  const [currentVariableId, setCurrentVariableId] = useState<string>("");
 
   const {
     isModalVisible,
@@ -89,15 +120,35 @@ export const LayoutConfigModal: React.FC<LayoutConfigEditorProps> = ({
     hideModal,
     saveLayoutConfig,
     enableToolbar,
-    documentState
+    documentState,
+    addImageVariableOnLayoutConfig,
+    updateDependent,
   } = useAppStore();
+
+  // Filter image variables from documentState
+  const imageVariables = useMemo(() => {
+    return documentState.variables.filter(
+      (variable) => variable.type === "image",
+    );
+  }, [documentState.variables]);
+
+  // Transform image variables into format required by Mantine Select
+  const imageVariableOptions = useMemo(() => {
+    return imageVariables.map((variable) => ({
+      value: variable.id,
+      label: variable.name,
+    }));
+  }, [imageVariables]);
 
   // Load config when component mounts if it"s not loaded yet
   useEffect(() => {
     const loadConfig = async () => {
       if (!isLayoutConfigLoaded) {
         const result = await loadConfigFromDoc();
-        result.fold((config) => loadLayoutConfigs(config), () => raiseError(result))
+        result.fold(
+          (config) => loadLayoutConfigs(config),
+          () => raiseError(result),
+        );
       }
     };
 
@@ -115,6 +166,49 @@ export const LayoutConfigModal: React.FC<LayoutConfigEditorProps> = ({
   // Handle layout config changes
   const handleConfigChange = (updatedConfig: LayoutConfig[]) => {
     loadLayoutConfigs(updatedConfig);
+  };
+
+  // Function to update the config with a new variable
+  const updateFUNC = () => {
+    if (selectedImageVariable && currentConfigIndex !== -1) {
+      addImageVariableOnLayoutConfig({
+        configId: layoutConfigs[currentConfigIndex].id,
+        imageVariable: {
+          id: selectedImageVariable,
+          dependents: [],
+          useFolderPath: true,
+          folderPath: "",
+          imageName: [],
+        },
+      });
+    }
+
+    // Reset state and close modal
+    setSelectedImageVariable(null);
+    setIsAddVariableModalOpen(false);
+  };
+
+  // Function to add a dependent to a variable
+  const addDependent = () => {
+    if (
+      selectedDependentVariable &&
+      currentVariableId &&
+      currentConfigIndex !== -1
+    ) {
+      // Use the updateDependent function from the store
+      updateDependent({
+        configId: layoutConfigs[currentConfigIndex].id,
+        imageVariableId: currentVariableId,
+        dependent: {
+          variableId: selectedDependentVariable,
+          values: [],
+        },
+      });
+
+      // Reset state and close modal
+      setSelectedDependentVariable(null);
+      setIsAddDependentModalOpen(false);
+    }
   };
 
   return (
@@ -138,7 +232,7 @@ export const LayoutConfigModal: React.FC<LayoutConfigEditorProps> = ({
             justifyContent: "center",
             alignItems: "center",
             display: "flex",
-          }
+          },
         }}
         centered
         fullScreen
@@ -147,7 +241,9 @@ export const LayoutConfigModal: React.FC<LayoutConfigEditorProps> = ({
         withCloseButton={false}
       >
         <TopBar>
-          <Title order={4} c="white">Layout Image Configuration Tool</Title>
+          <Title order={4} c="white">
+            Layout Image Configuration Tool
+          </Title>
         </TopBar>
 
         <Content>
@@ -156,31 +252,185 @@ export const LayoutConfigModal: React.FC<LayoutConfigEditorProps> = ({
           ) : (
             <Stack h="100%" gap="md">
               {layoutConfigs.map((config, index) => (
-                <Paper p="md">
+                <Paper key={index} p="md">
                   <Title>Layout Configuration</Title>
-                  <Title styles={{ root: { marginTop: "30px" } }} order={5} mb="md">Layout Dependencies</Title>
-                  <LayoutMultiSelect
-                    key={index}
-                    layoutConfig={config}
-                  />
+                  <Title
+                    styles={{ root: { marginTop: "30px" } }}
+                    order={5}
+                    mb="md"
+                  >
+                    Layout Dependencies
+                  </Title>
+                  <LayoutMultiSelect key={index} layoutConfig={config} />
                   <Divider styles={{ root: { marginTop: "30px" } }} />
-                  <Title styles={{ root: { marginTop: "20px" } }} order={5} mb="md">Set Variables</Title>
-                  {Object.keys(config.variables).map((varName) => (
-                    <Paper key={varName} styles={{ root: { margin: "15px" } }} shadow="sm" radius="lg" p="xl">
-                      <Select
-                        label="Variable To Set"
-                        placeholder="Select Variable"
-                        data={['React', 'Angular', 'Vue', 'Svelte']}
-                        searchable
-                      />
-                      <Text>
-                        Use it to create cards, dropdowns, modals and other components that require background
-                        with shadow
-                      </Text>
-                    </Paper>
-                  ))}
-                  <Button>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" width="24" height="24" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke="currentColor">
+                  <Title
+                    styles={{ root: { marginTop: "20px" } }}
+                    order={5}
+                    mb="md"
+                  >
+                    Set Variables
+                  </Title>
+                  {/* Display all variables from layoutConfig in their own Paper */}
+                  {config.variables.map((variableConfig) => {
+                    const variableDocument = documentState.variables.find(
+                      (v) => v.id == variableConfig.id,
+                    );
+
+                    if (variableDocument == null) {
+                      raiseError(
+                        Result.error(new Error("variableDocument is null")),
+                      );
+                      throw "ERROR - DO BETTER!!!";
+                    }
+
+                    return (
+                      <Paper
+                        key={variableConfig.id}
+                        styles={{ root: { margin: "15px" } }}
+                        shadow="sm"
+                        radius="lg"
+                        p="xl"
+                      >
+                        <Title order={6}>{variableDocument.name}</Title>
+                        <Text size="sm" c="dimmed">
+                          Type: {variableDocument.type}
+                        </Text>
+
+                        <Title order={6} mt="md">
+                          Dependents:
+                        </Title>
+                        {variableConfig.dependents.length === 0 ? (
+                          <Text size="sm" c="dimmed">
+                            No dependents
+                          </Text>
+                        ) : (
+                          variableConfig.dependents.map(
+                            (dependent, depIndex) => {
+                              const dependentVariable =
+                                documentState.variables.find(
+                                  (v) => v.id === dependent.variableId,
+                                );
+
+                              return (
+                                <Grid key={depIndex} mt="xs">
+                                  <Grid.Col span={4}>
+                                    <Text>
+                                      {dependentVariable?.name || "Unknown"}
+                                    </Text>
+                                  </Grid.Col>
+                                  <Grid.Col span={3}>
+                                    <Text size="sm" c="dimmed">
+                                      {dependentVariable?.type || "Unknown"}
+                                    </Text>
+                                  </Grid.Col>
+                                  <Grid.Col span={5}>
+                                    {dependentVariable?.type === "list" && (
+                                      <MultiSelect
+                                        data={
+                                          (dependentVariable as any).items?.map(
+                                            (item: {
+                                              value: string;
+                                              displayValue?: string;
+                                            }) => ({
+                                              value: item.value,
+                                              label:
+                                                item.displayValue || item.value,
+                                            }),
+                                          ) || []
+                                        }
+                                        value={dependent.values}
+                                        onChange={(newValues) => {
+                                          const updatedConfig = [
+                                            ...layoutConfigs,
+                                          ];
+                                          const configIndex =
+                                            layoutConfigs.findIndex(
+                                              (c) => c.id === config.id,
+                                            );
+                                          const updateVariable = updatedConfig[
+                                            configIndex
+                                          ].variables.find(
+                                            (v) => v.id == variableConfig.id,
+                                          );
+
+                                          if (updateVariable == null) {
+                                            const e = new Error(
+                                              "updateVariable is null",
+                                            );
+                                            raiseError(Result.error(e));
+                                            throw e;
+                                          }
+                                          updateVariable.dependents[
+                                            depIndex
+                                          ].values = newValues;
+                                          handleConfigChange(updatedConfig);
+                                        }}
+                                        placeholder="Select values"
+                                        size="xs"
+                                      />
+                                    )}
+                                  </Grid.Col>
+                                </Grid>
+                              );
+                            },
+                          )
+                        )}
+
+                        <Group mt="md" justify="flex-end">
+                          <Button
+                            variant="subtle"
+                            size="sm"
+                            onClick={() => {
+                              setCurrentConfigIndex(
+                                layoutConfigs.findIndex(
+                                  (c) => c.id === config.id,
+                                ),
+                              );
+                              setCurrentVariableId(variableConfig.id);
+                              setIsAddDependentModalOpen(true);
+                            }}
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              width="24"
+                              height="24"
+                              stroke-width="2"
+                              stroke-linejoin="round"
+                              stroke-linecap="round"
+                              stroke="currentColor"
+                            >
+                              <path d="M12 5l0 14"></path>
+                              <path d="M5 12l14 0"></path>
+                            </svg>
+                          </Button>
+                        </Group>
+                      </Paper>
+                    );
+                  })}
+
+                  {/* Add Variable button to open modal */}
+                  <Button
+                    onClick={() => {
+                      const configIndex = layoutConfigs.findIndex(
+                        (c) => c.id === config.id,
+                      );
+                      setCurrentConfigIndex(configIndex);
+                      setIsAddVariableModalOpen(true);
+                    }}
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      width="24"
+                      height="24"
+                      stroke-width="2"
+                      stroke-linejoin="round"
+                      stroke-linecap="round"
+                      stroke="currentColor"
+                    >
                       <path d="M12 5l0 14"></path>
                       <path d="M5 12l14 0"></path>
                     </svg>
@@ -198,6 +448,88 @@ export const LayoutConfigModal: React.FC<LayoutConfigEditorProps> = ({
             <Button onClick={handleClose}>Close</Button>
           </Group>
         </BottomBar>
+      </Modal>
+
+      {/* Modal for adding a new variable */}
+      <Modal
+        opened={isAddVariableModalOpen}
+        onClose={() => {
+          setIsAddVariableModalOpen(false);
+          setSelectedImageVariable(null);
+        }}
+        title="Add Image Variable"
+        centered
+      >
+        <Stack>
+          <Select
+            label="Select Image Variable"
+            placeholder="Choose an image variable"
+            data={imageVariableOptions}
+            value={selectedImageVariable}
+            onChange={setSelectedImageVariable}
+            searchable
+          />
+
+          <Group justify="flex-end" mt="md">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddVariableModalOpen(false);
+                setSelectedImageVariable(null);
+              }}
+            >
+              Close
+            </Button>
+            <Button onClick={updateFUNC} disabled={!selectedImageVariable}>
+              Add
+            </Button>
+          </Group>
+        </Stack>
+      </Modal>
+
+      {/* Modal for adding a dependent variable */}
+      <Modal
+        opened={isAddDependentModalOpen}
+        onClose={() => {
+          setIsAddDependentModalOpen(false);
+          setSelectedDependentVariable(null);
+        }}
+        title="Add Dependent Variable"
+        centered
+      >
+        <Stack>
+          <Select
+            label="Select Variable"
+            placeholder="Choose a variable"
+            data={documentState.variables
+              .filter((variable) => variable.type !== "image")
+              .map((variable) => ({
+                value: variable.id,
+                label: variable.name,
+              }))}
+            value={selectedDependentVariable}
+            onChange={setSelectedDependentVariable}
+            searchable
+          />
+
+          <Group justify="flex-end" mt="md">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsAddDependentModalOpen(false);
+                setSelectedDependentVariable(null);
+              }}
+            >
+              Close
+            </Button>
+            <Button
+              onClick={addDependent}
+              disabled={!selectedDependentVariable}
+            >
+              Add
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
     </MantineProvider>
   );
