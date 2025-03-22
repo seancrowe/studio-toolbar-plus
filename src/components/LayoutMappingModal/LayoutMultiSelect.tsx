@@ -1,9 +1,9 @@
 import { Group, MultiSelect } from "@mantine/core";
 import React, { useState, useEffect } from "react";
 import { Drawer, Button } from "@mantine/core";
-import type { LayoutConfig } from "../layoutConfigTypes";
-import type { Layout } from "../docStateTypes.ts";
-import { useAppStore, appStore } from "../modalStore";
+import type { LayoutConfig } from "../../types/layoutConfigTypes.ts";
+import type { Layout } from "../../types/docStateTypes.ts";
+import { useAppStore, appStore } from "../../modalStore.ts";
 
 type LayoutMultiSelectProps = {
   layoutConfig: LayoutConfig;
@@ -30,12 +30,12 @@ export const LayoutMultiSelect: React.FC<LayoutMultiSelectProps> = ({
   layoutConfig,
   // onChange
 }) => {
-  const { documentState, layoutConfigs, setLayoutIdsOnLayoutConfig } =
+  const { state, effects: events } =
     useAppStore();
 
   const handleMultiSelectChange = (updateLayoutIds: string[]) => {
-    setLayoutIdsOnLayoutConfig({
-      configId: layoutConfig.id,
+    events.studio.layoutImageMapping.setLayoutIds({
+      mapId: layoutConfig.id,
       layoutIds: updateLayoutIds,
     });
   };
@@ -43,11 +43,11 @@ export const LayoutMultiSelect: React.FC<LayoutMultiSelectProps> = ({
   return (
     <Group>
       <MultiSelect
-        data={documentState.layouts.map((layout) => ({
+        data={state.studio.document.layouts.map((layout) => ({
           value: layout.id,
           label: layout.name,
         }))}
-        value={layoutConfigs.find((lc) => lc.id == layoutConfig.id)?.layoutIds}
+        value={state.studio.layoutImageMapping.find((lc) => lc.id == layoutConfig.id)?.layoutIds}
         onChange={handleMultiSelectChange}
         placeholder="Select layouts"
         searchable

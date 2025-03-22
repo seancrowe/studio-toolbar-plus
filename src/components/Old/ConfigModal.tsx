@@ -1,11 +1,11 @@
 // ConfigModal.tsx
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { useModalStore } from "../modalStore";
-import { loadConfigFromDoc } from "../studio/layoutConfigHandler.ts";
-import type { LayoutConfig, Variables } from "../layoutConfigTypes.ts";
-import MultiSelect from './MultiSelect';
-import TagSelect from './TagSelect';
+import { useModalStore } from "../../modalStore.ts";
+import { loadConfigFromDoc } from "../../studio/layoutConfigHandler.ts";
+import type { LayoutConfig, Variables } from "../../types/layoutConfigTypes.ts";
+import MultiSelect from '../LayoutMappingModal/MultiSelect.tsx';
+import TagSelect from './TagSelect.tsx';
 
 const ModalOverlay = styled.div`
   position: fixed;

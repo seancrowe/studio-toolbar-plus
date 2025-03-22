@@ -1,14 +1,14 @@
 import React from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { ConfigModal } from "./components/ConfigModal";
+import { ConfigModal } from "./components/Old/ConfigModal.tsx";
 import { appStore } from "./modalStore";
 import { Toolbar, ToolbarHover } from "./components/Toolbar.tsx";
 import { ToolbarButton } from "./components/ToolbarButton.tsx";
 import type { default as SDKType } from "@chili-publish/studio-sdk";
-import { LayoutConfigModal } from "./components/LayoutModal.tsx";
-import '@mantine/core/styles.css';
+import { LayoutImageMappingModal } from "./components/LayoutMappingModal/LayoutModal.tsx";
+import "@mantine/core/styles.css";
 import { MantineProvider, MultiSelect } from "@mantine/core";
-import { LayoutMultiSelect } from "./components/LayoutMultiSelect.tsx";
+import { LayoutMultiSelect } from "./components/LayoutMappingModal/LayoutMultiSelect.tsx";
 
 declare global {
   interface Window {
@@ -25,7 +25,7 @@ interface ModalAPI {
   exportCSV: () => void;
 }
 
-// Initialize the toolbar function
+// Initialize the toolbar function hi
 function initToolbar(): void {
   // Create toolbar container if it doesn't exist
   if (!window.toolbarInstance) {
@@ -42,7 +42,7 @@ function initToolbar(): void {
     // Create root for the toolbar
     window.toolbarInstance = createRoot(toolbarContainer);
 
-    // Render the toolbar component
+    // Render the toolbar component!
     window.toolbarInstance.render(
       <React.StrictMode>
         <ToolbarHover />
@@ -82,15 +82,13 @@ function initToolbar(): void {
 //@ts-ignore
 window.test = () => console.log(appStore.getState());
 
-// Define the exportCSV function
+// Define the exportCSV function z
 const handleExportCSV = () => {
   console.log("Exporting CSV...");
   // Implementation will come later
 };
 
 function renderConfigModal(): void {
-
-
   // Create our modal root if it doesn't exist
   if (!window.rootInstance) {
     // Create div on body and use in it in the createRoot
@@ -103,7 +101,7 @@ function renderConfigModal(): void {
 
   window.rootInstance.render(
     <React.StrictMode>
-      <LayoutConfigModal onExportCSV={() => console.log("Look")} />
+      <LayoutImageMappingModal onExportCSV={() => console.log("Look")} />
     </React.StrictMode>,
   );
 }

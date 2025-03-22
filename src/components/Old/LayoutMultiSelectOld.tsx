@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MultiSelect, Tree, Checkbox, Group, Box, Popover } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { useAppStore } from '../modalStore';
-import { type Layout as DocLayout } from '../docStateTypes';
-import { type Layout } from '../layoutConfigTypes';
+import { useAppStore } from '../../modalStore';
+import { type Layout as DocLayout } from '../../types/docStateTypes';
+import { type Layout } from '../../types/layoutConfigTypes';
 
 interface LayoutMultiSelectProps {
   value: Layout[];
