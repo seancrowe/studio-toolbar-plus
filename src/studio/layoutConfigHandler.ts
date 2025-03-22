@@ -1,9 +1,7 @@
 import { Result } from "typescript-result";
-import type { LayoutConfig } from "../types/layoutConfigTypes";
+import type { LayoutMap } from "../types/layoutConfigTypes";
 
-export async function loadConfigFromDoc(): Promise<
-  Result<LayoutConfig[], never>
-> {
+export async function loadConfigFromDoc(): Promise<Result<LayoutMap[], never>> {
   return Result.ok([
     {
       id: "1234",

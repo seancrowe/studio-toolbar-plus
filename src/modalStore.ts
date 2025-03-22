@@ -46,6 +46,9 @@ type StudioState = {
 
 type StudioEffects = {
   layoutImageMapping: {
+    addLayoutMap: () => void;
+    addLayoutMapFromCopy: (mapId: string) => void;
+    deleteLayoutMap: (mapId: string) => void;
     setLayoutIds: (data: { mapId: string; layoutIds: string[] }) => void;
     addImageVariable: (data: {
       mapId: string;
@@ -88,6 +91,13 @@ type StudioEffects = {
       imageVariableId: string;
       groupIndex: number;
       variableValueIndex: number;
+    }) => void;
+    updateVarValueFromDependentGroup: (data: {
+      mapId: string;
+      imageVariableId: string;
+      groupIndex: number;
+      variableValueIndex: number;
+      variableValue: string | Variable;
     }) => void;
     setIndexOfVarValueFromDependentGroup: (data: {
       mapId: string;
@@ -210,6 +220,93 @@ export const appStore = create<AppStore>()(
       },
       studio: {
         layoutImageMapping: {
+          addLayoutMap: () =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                // Generate a random ID for the new layout map
+                const randomId = Math.random().toString(36).substring(2, 10);
+
+                // Create a new layout map with the random ID
+                const newLayoutMap: LayoutMap = {
+                  id: randomId,
+                  layoutIds: [],
+                  variables: [],
+                };
+
+                // Add the new layout map to the array
+                store.state.studio.layoutImageMapping.push(newLayoutMap);
+              } else {
+                raiseError(
+                  store,
+                  new Error("For addLayoutMap layout config is not loaded"),
+                );
+              }
+            }),
+          addLayoutMapFromCopy: (mapId) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                // Find the source layout map to copy
+                const sourceLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id === mapId,
+                  );
+
+                if (sourceLayoutMap) {
+                  // Generate a random ID for the new layout map
+                  const randomId = Math.random().toString(36).substring(2, 10);
+
+                  // Create a deep copy of the source layout map
+                  const newLayoutMap: LayoutMap = {
+                    id: randomId,
+                    layoutIds: [], // Empty layoutIds as required
+                    variables: JSON.parse(
+                      JSON.stringify(sourceLayoutMap.variables),
+                    ), // Deep copy variables
+                  };
+
+                  // Add the new layout map to the array
+                  store.state.studio.layoutImageMapping.push(newLayoutMap);
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For addLayoutMapFromCopy source layout map not found",
+                    ),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error(
+                    "For addLayoutMapFromCopy layout config is not loaded",
+                  ),
+                );
+              }
+            }),
+          deleteLayoutMap: (mapId) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const mapIndex =
+                  store.state.studio.layoutImageMapping.findIndex(
+                    (map) => map.id === mapId,
+                  );
+
+                if (mapIndex !== -1) {
+                  // Remove the layout map at the found index
+                  store.state.studio.layoutImageMapping.splice(mapIndex, 1);
+                } else {
+                  raiseError(
+                    store,
+                    new Error("For deleteLayoutMap layout map not found"),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error("For deleteLayoutMap layout config is not loaded"),
+                );
+              }
+            }),
           setLayoutIds: ({ mapId: configId, layoutIds }) =>
             set((store) => {
               if (store.state.studio.isLayoutConfigLoaded) {
@@ -656,6 +753,78 @@ export const appStore = create<AppStore>()(
                   store,
                   new Error(
                     "For removeVarValueFromDependentGroup layout config is not loaded",
+                  ),
+                );
+              }
+            }),
+          updateVarValueFromDependentGroup: ({
+            mapId,
+            imageVariableId,
+            groupIndex,
+            variableValueIndex,
+            variableValue,
+          }) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id == mapId,
+                  );
+                if (targetLayoutMap) {
+                  const imageVariable = targetLayoutMap.variables.find(
+                    (imgVar) => imgVar.id == imageVariableId,
+                  );
+                  if (imageVariable) {
+                    const dependentGroup =
+                      imageVariable.dependentGroup[groupIndex];
+
+                    if (dependentGroup == undefined) {
+                      raiseError(
+                        store,
+                        new Error(
+                          "For updateVarValueFromDependentGroup dependentGroup not found",
+                        ),
+                      );
+                      return;
+                    }
+
+                    if (
+                      variableValueIndex < 0 ||
+                      variableValueIndex >= dependentGroup.variableValue.length
+                    ) {
+                      raiseError(
+                        store,
+                        new Error(
+                          "For updateVarValueFromDependentGroup invalid variableValueIndex",
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Update the variable value at the specified index
+                    dependentGroup.variableValue[variableValueIndex] =
+                      variableValue;
+                  } else {
+                    raiseError(
+                      store,
+                      new Error(
+                        "For updateVarValueFromDependentGroup imageVariable not found",
+                      ),
+                    );
+                  }
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For updateVarValueFromDependentGroup targetLayoutMap not found",
+                    ),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error(
+                    "For updateVarValueFromDependentGroup layout config is not loaded",
                   ),
                 );
               }

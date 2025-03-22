@@ -16,6 +16,9 @@
   },
   "dependencies": {
     "@chili-publish/studio-sdk": "^1.21.0",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@mantine/core": "^7.17.2",
     "@mantine/hooks": "^7.17.2",
     "@tabler/icons-react": "^3.31.0",
