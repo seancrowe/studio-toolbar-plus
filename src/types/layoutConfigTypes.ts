@@ -14,7 +14,7 @@ export type Text = {
 };
 
 export type Variable = {
-  id: string;
+  id: string | null;
   type: StudioText | StudioList;
   transform: TransformCommands[];
 };
@@ -24,15 +24,17 @@ export type DependentVar = {
   values: string[];
 };
 
-export type ImageVariable = {
-  id: string;
+export type DependentGroup = {
   dependents: DependentVar[];
-  useFolderPath: boolean;
-  folderPath: string;
-  imageName: (string | Variable)[];
+  variableValue: (string | Variable)[];
 };
 
-export type LayoutConfig = {
+export type ImageVariable = {
+  id: string;
+  dependentGroup: DependentGroup[];
+};
+
+export type LayoutMap = {
   id: string;
   layoutIds: string[];
   variables: ImageVariable[];

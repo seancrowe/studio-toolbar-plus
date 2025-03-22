@@ -2,21 +2,24 @@
 import { create } from "zustand";
 import { immer } from "zustand/middleware/immer";
 import {
-  type LayoutConfig,
+  type LayoutMap,
   type ImageVariable,
   type DependentVar,
+  type Variable,
 } from "./types/layoutConfigTypes";
 import { Result, type Result as ResultType } from "typescript-result";
 import { type Doc } from "./types/docStateTypes";
+import type { WritableDraft } from "immer";
 
 type LayoutImageMappingModalState = {
   isModalVisible: boolean;
   dependentModal: {
     isOpen: boolean;
+    currentGroupIndex: number | null;
     currentImageVariableId: string | null;
     currentSelectedVariables: string[];
-  }
-  currentAddImageMappingSelectedVariables: string[],
+  };
+  currentAddImageMappingSelectedVariables: string[];
   isAddImageVariableMappingModalOpen: boolean;
   currentSelectedMapId: string | null;
 };
@@ -25,20 +28,19 @@ type LayoutImageMappingModalEffects = {
   showModal: () => void;
   hideModal: () => void;
   dependentModal: {
-    setIsOpen: (value:boolean) => void;
-    setCurrentImageVariableId: (id:string) => void;
-    setCurrentSelectedVariables: (value:string[]) => void;
-  }
+    setIsOpen: (value: boolean) => void;
+    setCurrentGroupIndex: (value: number | null) => void;
+    setCurrentImageVariableId: (id: string) => void;
+    setCurrentSelectedVariables: (value: string[]) => void;
+  };
   setIsImageVariableMappingModalOpen: (value: boolean) => void;
-  setCurrentAddImageMappingSelectedVariables: (value:string[]) => void;
-  setCurrentSelectedMapId: (value:string) => void;
+  setCurrentAddImageMappingSelectedVariables: (value: string[]) => void;
+  setCurrentSelectedMapId: (value: string) => void;
 };
-
-
 
 type StudioState = {
   document: Doc;
-  layoutImageMapping: LayoutConfig[];
+  layoutImageMapping: LayoutMap[];
   isLayoutConfigLoaded: boolean;
 };
 
@@ -46,15 +48,55 @@ type StudioEffects = {
   layoutImageMapping: {
     setLayoutIds: (data: { mapId: string; layoutIds: string[] }) => void;
     addImageVariable: (data: {
-      configId: string;
+      mapId: string;
       imageVariable: ImageVariable;
     }) => void;
-    updateDependent: (data: {
-      configId: string;
+    removeImageVariable: (data: {
+      mapId: string;
       imageVariableId: string;
+    }) => void;
+    updateDependent: (data: {
+      mapId: string;
+      imageVariableId: string;
+      dependentGroupIndex: number;
       dependent: DependentVar;
     }) => void;
-    load: (configs: LayoutConfig[]) => void;
+    removeDependent: (data: {
+      mapId: string;
+      imageVariableId: string;
+      dependentGroupIndex: number;
+      dependent: DependentVar;
+    }) => void;
+    addDependentGroup: (data: {
+      mapId: string;
+      imageVariableId: string;
+      dependents: DependentVar[];
+    }) => void;
+    removeDependentGroup: (data: {
+      mapId: string;
+      imageVariableId: string;
+      groupIndex: number;
+    }) => void;
+    addVarValueToDependentGroup: (data: {
+      mapId: string;
+      imageVariableId: string;
+      groupIndex: number;
+      variableValue: string | Variable;
+    }) => void;
+    removeVarValueFromDependentGroup: (data: {
+      mapId: string;
+      imageVariableId: string;
+      groupIndex: number;
+      variableValueIndex: number;
+    }) => void;
+    setIndexOfVarValueFromDependentGroup: (data: {
+      mapId: string;
+      imageVariableId: string;
+      groupIndex: number;
+      oldVariableValueIndex: number;
+      newVariableValueIndex: number;
+    }) => void;
+    load: (configs: LayoutMap[]) => void;
     save: () => void;
   };
 };
@@ -83,7 +125,7 @@ type AppStore = {
 };
 
 // Placeholder for the external save function
-const saveLayoutConfigToJSON = (config: LayoutConfig[]) => {
+const saveLayoutConfigToJSON = (config: LayoutMap[]) => {
   console.log("Saving config:", config);
   // To be implemented
 };
@@ -101,8 +143,9 @@ export const appStore = create<AppStore>()(
         dependentModal: {
           isOpen: false,
           currentImageVariableId: null,
-          currentSelectedVariables: []
-        }
+          currentSelectedVariables: [],
+          currentGroupIndex: null,
+        },
       },
       studio: {
         isLayoutConfigLoaded: false,
@@ -133,103 +176,586 @@ export const appStore = create<AppStore>()(
           set((store) => {
             store.state.modal.isAddImageVariableMappingModalOpen = value;
           }),
-          setCurrentAddImageMappingSelectedVariables: (value) => 
-            set(store => {
-              store.state.modal.currentAddImageMappingSelectedVariables = value
-            }),
-          setCurrentSelectedMapId: (value) => {
-            set(store => {
-              store.state.modal.currentSelectedMapId = value;
-            })
+        setCurrentAddImageMappingSelectedVariables: (value) =>
+          set((store) => {
+            store.state.modal.currentAddImageMappingSelectedVariables = value;
+          }),
+        setCurrentSelectedMapId: (value) => {
+          set((store) => {
+            store.state.modal.currentSelectedMapId = value;
+          });
+        },
+        dependentModal: {
+          setIsOpen: (value) => {
+            set((store) => {
+              store.state.modal.dependentModal.isOpen = value;
+            });
           },
-          dependentModal: {
-            setIsOpen: (value) => {
-              set(store => {
-                store.state.modal.dependentModal.isOpen = value;
-              })
-            },
-            setCurrentImageVariableId: (id) => {
-              set(store => {
-                store.state.modal.dependentModal.currentImageVariableId = id;
-              })
-            },
-            setCurrentSelectedVariables: (value) => {
-              set(store => {
-                store.state.modal.dependentModal.currentSelectedVariables = value;
-              })
-            },
-          }
+          setCurrentImageVariableId: (id) => {
+            set((store) => {
+              store.state.modal.dependentModal.currentImageVariableId = id;
+            });
+          },
+          setCurrentSelectedVariables: (value) => {
+            set((store) => {
+              store.state.modal.dependentModal.currentSelectedVariables = value;
+            });
+          },
+          setCurrentGroupIndex: (value) => {
+            set((store) => {
+              store.state.modal.dependentModal.currentGroupIndex = value;
+            });
+          },
+        },
       },
       studio: {
         layoutImageMapping: {
           setLayoutIds: ({ mapId: configId, layoutIds }) =>
             set((store) => {
               if (store.state.studio.isLayoutConfigLoaded) {
-                const targetLayout = store.state.studio.layoutImageMapping.find(
-                  (layout) => layout.id == configId,
-                );
-                if (targetLayout) targetLayout.layoutIds = layoutIds;
-              }
-            }),
-          addImageVariable: ({ configId, imageVariable }) =>
-            set((store) => {
-              if (store.state.studio.isLayoutConfigLoaded) {
-                const targetLayout = store.state.studio.layoutImageMapping.find(
-                  (layout) => layout.id == configId,
-                );
-                console.log("tartget Layout", targetLayout);
-                if (targetLayout) {
-                  const imageVariableIndex = targetLayout.variables.findIndex(
-                    (imgVar) => imgVar.id == imageVariable.id,
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (layout) => layout.id == configId,
                   );
-
-                  if (imageVariableIndex == -1) {
-                    targetLayout.variables.push(imageVariable);
-                  } else {
-                    targetLayout.variables[imageVariableIndex] = imageVariable;
-                  }
+                if (targetLayoutMap) {
+                  targetLayoutMap.layoutIds = layoutIds;
+                } else {
+                  raiseError(
+                    store,
+                    new Error("For setLayoutIds targetLayoutMap not found"),
+                  );
                 }
+              } else {
+                raiseError(
+                  store,
+                  new Error("For setLayoutIds layout config is not loaded"),
+                );
               }
             }),
-          updateDependent: ({ configId, imageVariableId, dependent }) =>
+          addImageVariable: ({ mapId, imageVariable }) =>
             set((store) => {
               if (store.state.studio.isLayoutConfigLoaded) {
-                const targetLayout = store.state.studio.layoutImageMapping.find(
-                  (layout) => layout.id == configId,
-                );
-
-                if (targetLayout) {
-                  const imageVariable = targetLayout.variables.find(
-                    (imgVar) => imgVar.id == imageVariableId,
+                const targetLayoutMapMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id == mapId,
                   );
-
-                  if (imageVariable) {
-                    const dependentIndex = imageVariable.dependents.findIndex(
-                      (dep) => dep.variableId == dependent.variableId,
+                if (targetLayoutMapMap) {
+                  const imageVariableIndex =
+                    targetLayoutMapMap.variables.findIndex(
+                      (imgVar) => imgVar.id == imageVariable.id,
                     );
 
-                    if (dependentIndex == -1) {
-                      // Add new dependent if it doesn't exist
-                      imageVariable.dependents.push(dependent);
-                    } else {
-                      // Update existing dependent
-                      imageVariable.dependents[dependentIndex] = dependent;
-                    }
+                  if (imageVariableIndex == -1) {
+                    targetLayoutMapMap.variables.push(imageVariable);
+                  } else {
+                    targetLayoutMapMap.variables[imageVariableIndex] =
+                      imageVariable;
                   }
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For addImageVariable targetLayoutMapMap not found",
+                    ),
+                  );
                 }
+              } else {
+                raiseError(
+                  store,
+                  new Error("For addImageVariable layout config is not loaded"),
+                );
               }
             }),
-          load: (configs: LayoutConfig[]) =>
+          updateDependent: ({
+            mapId,
+            imageVariableId,
+            dependentGroupIndex,
+            dependent,
+          }) =>
             set((store) => {
-              if (!store.state.studio.isLayoutConfigLoaded)
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (layout) => layout.id == mapId,
+                  );
+
+                if (!targetLayoutMap) {
+                  raiseError(
+                    store,
+                    new Error("For updateDependent targetLayoutMap not found"),
+                  );
+                  return;
+                }
+
+                const imageVariable = targetLayoutMap.variables.find(
+                  (imgVar) => imgVar.id == imageVariableId,
+                );
+
+                if (!imageVariable) {
+                  raiseError(
+                    store,
+                    new Error("For updateDependent imageVariable not found"),
+                  );
+                  return;
+                }
+
+                const dependentGroup =
+                  imageVariable.dependentGroup[dependentGroupIndex];
+
+                if (dependentGroup == undefined) {
+                  raiseError(
+                    store,
+                    new Error("For updateDependent dependentGroup not found"),
+                  );
+                  return;
+                }
+
+                const dependentIndex = dependentGroup.dependents.findIndex(
+                  (dep) => dep.variableId == dependent.variableId,
+                );
+
+                if (dependentIndex == -1) {
+                  // Add new dependent if it doesn't exist
+                  dependentGroup.dependents.push(dependent);
+                } else {
+                  // Update existing dependent
+                  dependentGroup.dependents[dependentIndex] = dependent;
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error("For updateDependent layout config is not loaded"),
+                );
+              }
+            }),
+          removeDependent: ({
+            mapId,
+            imageVariableId,
+            dependentGroupIndex,
+            dependent,
+          }) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (layout) => layout.id == mapId,
+                  );
+
+                if (!targetLayoutMap) {
+                  raiseError(
+                    store,
+                    new Error("For removeDependent targetLayoutMap not found"),
+                  );
+                  return;
+                }
+
+                const imageVariable = targetLayoutMap.variables.find(
+                  (imgVar) => imgVar.id == imageVariableId,
+                );
+
+                if (!imageVariable) {
+                  raiseError(
+                    store,
+                    new Error("For removeDependent imageVariable not found"),
+                  );
+                  return;
+                }
+
+                const dependentGroup =
+                  imageVariable.dependentGroup[dependentGroupIndex];
+
+                if (dependentGroup == undefined) {
+                  raiseError(
+                    store,
+                    new Error("For removeDependent dependentGroup not found"),
+                  );
+                  return;
+                }
+
+                const dependentIndex = dependentGroup.dependents.findIndex(
+                  (dep) => dep.variableId == dependent.variableId,
+                );
+
+                if (dependentIndex == -1) {
+                  raiseError(
+                    store,
+                    new Error("For removeDependent dependent not found"),
+                  );
+                  return;
+                }
+
+                dependentGroup.dependents.splice(dependentIndex, 1);
+              } else {
+                raiseError(
+                  store,
+                  new Error("For removeDependent layout config is not loaded"),
+                );
+              }
+            }),
+          load: (configs: LayoutMap[]) =>
+            set((store) => {
+              if (!store.state.studio.isLayoutConfigLoaded) {
                 store.state.studio.isLayoutConfigLoaded = true;
-              // Object.assign(store.state.studioState.layoutConfigs[], config);
-              store.state.studio.layoutImageMapping = configs;
+                store.state.studio.layoutImageMapping = configs;
+              } else {
+                raiseError(
+                  store,
+                  new Error("For load layout config is already loaded"),
+                );
+              }
             }),
           save: () => {
             const store = get();
-            saveLayoutConfigToJSON(store.state.studio.layoutImageMapping);
+            if (store.state.studio.isLayoutConfigLoaded) {
+              saveLayoutConfigToJSON(store.state.studio.layoutImageMapping);
+            } else {
+              raiseError(
+                store,
+                new Error("For save layout config is not loaded"),
+              );
+            }
           },
+          addDependentGroup: ({ mapId, imageVariableId, dependents }) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id == mapId,
+                  );
+                if (targetLayoutMap) {
+                  const imageVariable = targetLayoutMap.variables.find(
+                    (imgVar) => imgVar.id == imageVariableId,
+                  );
+                  if (imageVariable) {
+                    imageVariable.dependentGroup.push({
+                      dependents,
+                      variableValue: [],
+                    });
+                  } else {
+                    raiseError(
+                      store,
+                      new Error(
+                        "For addDependentGroup imageVariable not found",
+                      ),
+                    );
+                  }
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For addDependentGroup targetLayoutMap not found",
+                    ),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error(
+                    "For addDependentGroup layout config is not loaded",
+                  ),
+                );
+              }
+            }),
+          removeImageVariable: ({ mapId, imageVariableId }) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id == mapId,
+                  );
+                if (targetLayoutMap) {
+                  const imageVariableIndex =
+                    targetLayoutMap.variables.findIndex(
+                      (imgVar) => imgVar.id == imageVariableId,
+                    );
+                  if (imageVariableIndex !== -1) {
+                    targetLayoutMap.variables.splice(imageVariableIndex, 1);
+                  } else {
+                    raiseError(
+                      store,
+                      new Error(
+                        "For removeImageVariable imageVariable not found",
+                      ),
+                    );
+                  }
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For removeImageVariable targetLayoutMap not found",
+                    ),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error(
+                    "For removeImageVariable layout config is not loaded",
+                  ),
+                );
+              }
+            }),
+          removeDependentGroup: ({ mapId, imageVariableId, groupIndex }) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id == mapId,
+                  );
+                if (targetLayoutMap) {
+                  const imageVariable = targetLayoutMap.variables.find(
+                    (imgVar) => imgVar.id == imageVariableId,
+                  );
+                  if (imageVariable) {
+                    imageVariable.dependentGroup.splice(groupIndex, 1);
+                  } else {
+                    raiseError(
+                      store,
+                      new Error(
+                        "For removeDependentGroup imageVariable not found",
+                      ),
+                    );
+                  }
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For removeDependentGroup targetLayoutMap not found",
+                    ),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error(
+                    "For removeDependentGroup layout config is not loaded",
+                  ),
+                );
+              }
+            }),
+          addVarValueToDependentGroup: ({
+            mapId,
+            imageVariableId,
+            groupIndex,
+            variableValue,
+          }) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id == mapId,
+                  );
+                if (targetLayoutMap) {
+                  const imageVariable = targetLayoutMap.variables.find(
+                    (imgVar) => imgVar.id == imageVariableId,
+                  );
+                  if (imageVariable) {
+                    const dependentGroup =
+                      imageVariable.dependentGroup[groupIndex];
+
+                    if (dependentGroup == undefined) {
+                      raiseError(
+                        store,
+                        new Error(
+                          "For addVarValueToDependentGroup dependentGroup not found",
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Add the variable value to the dependent group
+                    dependentGroup.variableValue.push(variableValue);
+                  } else {
+                    raiseError(
+                      store,
+                      new Error(
+                        "For addVarValueToDependentGroup imageVariable not found",
+                      ),
+                    );
+                  }
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For addVarValueToDependentGroup targetLayoutMap not found",
+                    ),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error(
+                    "For addVarValueToDependentGroup layout config is not loaded",
+                  ),
+                );
+              }
+            }),
+          removeVarValueFromDependentGroup: ({
+            mapId,
+            imageVariableId,
+            groupIndex,
+            variableValueIndex,
+          }) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id == mapId,
+                  );
+                if (targetLayoutMap) {
+                  const imageVariable = targetLayoutMap.variables.find(
+                    (imgVar) => imgVar.id == imageVariableId,
+                  );
+                  if (imageVariable) {
+                    const dependentGroup =
+                      imageVariable.dependentGroup[groupIndex];
+
+                    if (dependentGroup == undefined) {
+                      raiseError(
+                        store,
+                        new Error(
+                          "For removeVarValueFromDependentGroup dependentGroup not found",
+                        ),
+                      );
+                      return;
+                    }
+
+                    if (
+                      variableValueIndex < 0 ||
+                      variableValueIndex >= dependentGroup.variableValue.length
+                    ) {
+                      raiseError(
+                        store,
+                        new Error(
+                          "For removeVarValueFromDependentGroup invalid variableValueIndex",
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Remove the variable value at the specified index
+                    dependentGroup.variableValue.splice(variableValueIndex, 1);
+                  } else {
+                    raiseError(
+                      store,
+                      new Error(
+                        "For removeVarValueFromDependentGroup imageVariable not found",
+                      ),
+                    );
+                  }
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For removeVarValueFromDependentGroup targetLayoutMap not found",
+                    ),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error(
+                    "For removeVarValueFromDependentGroup layout config is not loaded",
+                  ),
+                );
+              }
+            }),
+          setIndexOfVarValueFromDependentGroup: ({
+            mapId,
+            imageVariableId,
+            groupIndex,
+            oldVariableValueIndex,
+            newVariableValueIndex,
+          }) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id == mapId,
+                  );
+                if (targetLayoutMap) {
+                  const imageVariable = targetLayoutMap.variables.find(
+                    (imgVar) => imgVar.id == imageVariableId,
+                  );
+                  if (imageVariable) {
+                    const dependentGroup =
+                      imageVariable.dependentGroup[groupIndex];
+
+                    if (dependentGroup == undefined) {
+                      raiseError(
+                        store,
+                        new Error(
+                          "For setIndexOfVarValueFromDependentGroup dependentGroup not found",
+                        ),
+                      );
+                      return;
+                    }
+
+                    if (
+                      oldVariableValueIndex < 0 ||
+                      oldVariableValueIndex >=
+                        dependentGroup.variableValue.length
+                    ) {
+                      raiseError(
+                        store,
+                        new Error(
+                          "For setIndexOfVarValueFromDependentGroup invalid oldVariableValueIndex",
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Handle boundary conditions for newVariableValueIndex
+                    let adjustedNewIndex = newVariableValueIndex;
+
+                    // If newVariableValueIndex is less than 0, set it to 0
+                    if (adjustedNewIndex < 0) {
+                      adjustedNewIndex = 0;
+                    }
+
+                    // If newVariableValueIndex is greater than the length, set it to the last element
+                    if (
+                      adjustedNewIndex >= dependentGroup.variableValue.length
+                    ) {
+                      adjustedNewIndex =
+                        dependentGroup.variableValue.length - 1;
+                    }
+
+                    // Move the variable value from the old index to the new index
+                    const [movedItem] = dependentGroup.variableValue.splice(
+                      oldVariableValueIndex,
+                      1,
+                    );
+                    dependentGroup.variableValue.splice(
+                      adjustedNewIndex,
+                      0,
+                      movedItem,
+                    );
+                  } else {
+                    raiseError(
+                      store,
+                      new Error(
+                        "For setIndexOfVarValueFromDependentGroup imageVariable not found",
+                      ),
+                    );
+                  }
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For setIndexOfVarValueFromDependentGroup targetLayoutMap not found",
+                    ),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error(
+                    "For setIndexOfVarValueFromDependentGroup layout config is not loaded",
+                  ),
+                );
+              }
+            }),
         },
       },
     },
@@ -253,10 +779,10 @@ export const appStore = create<AppStore>()(
     raiseError: (error) => {
       if ((error as ResultType<any, Error>).isResult != null) {
         (error as ResultType<any, Error>).onFailure((error) =>
-          set((state) => state.errors.push({ error, state })),
+          set((state) => raiseError(state, error)),
         );
       } else {
-        set((state) => state.errors.push({ error: error as Error, state }));
+        set((state) => raiseError(state, error as Error));
       }
     },
   })),
@@ -266,6 +792,10 @@ appStore.subscribe((state, oldState) =>
   console.log("state", state, "oldState", oldState),
 );
 
+function raiseError(store: WritableDraft<AppStore>, error: Error) {
+  store.errors.push({ error, state: store });
+  console.error(error);
+}
 
 function mockDocData() {
   return {
@@ -291,18 +821,21 @@ function mockDocData() {
       {
         id: "img1",
         type: "image",
+        isVisiblie: true,
         name: "Header Logo",
         value: "https://example.com/images/logo.png",
       },
       {
         id: "img2",
         type: "image",
+        isVisiblie: true,
         name: "Profile Picture",
         value: "https://example.com/images/profile.jpg",
       },
       {
         id: "img3",
         type: "image",
+        isVisiblie: true,
         name: "Background Image",
         value: "https://example.com/images/background.jpg",
       },
@@ -311,6 +844,7 @@ function mockDocData() {
       {
         id: "list1",
         type: "list",
+        isVisiblie: true,
         name: "Country Selection",
         value: "United States",
         items: [
@@ -324,6 +858,7 @@ function mockDocData() {
       {
         id: "list2",
         type: "list",
+        isVisiblie: true,
         name: "Document Categories",
         value: "financial",
         items: [
@@ -338,20 +873,32 @@ function mockDocData() {
       {
         id: "text1",
         type: "shortText",
+        isVisiblie: true,
         name: "Document Title",
         value: "Quarterly Financial Report",
       },
       {
         id: "text2",
         type: "shortText",
+        isVisiblie: true,
         name: "Author Name",
         value: "Jane Doe",
       },
       {
         id: "text3",
         type: "shortText",
+        isVisiblie: true,
         name: "Department",
         value: "Finance",
+      },
+
+      // 1 boolean
+      {
+        id: "bool1",
+        type: "boolean",
+        isVisiblie: true,
+        name: "For Sale",
+        value: true,
       },
     ],
   } as Doc;

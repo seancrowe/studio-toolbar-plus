@@ -7,7 +7,7 @@ import {
   Button,
 } from "@mantine/core";
 import { useState } from "react";
-import type { LayoutConfig } from "../../types/layoutConfigTypes";
+import type { LayoutMap } from "../../types/layoutConfigTypes";
 import { LayoutMultiSelect } from "./LayoutMultiSelect";
 import { VariableCard } from "./VariableCard";
 import {
@@ -21,19 +21,19 @@ import { useAppStore } from "../../modalStore";
 
 // Layout Config Section Component
 interface LayoutConfigSectionProps {
-  config: LayoutConfig;
+  mapConfig: LayoutMap;
   index: number;
   // onAddVariable: () => void;
   // onAddDependent: (configId: string, variableId: string) => void;
 }
 
 export const LayoutConfigSection: React.FC<LayoutConfigSectionProps> = ({
-  config,
+  mapConfig,
   index,
 }) => {
   const [isOpen, setIsOpen] = useState(true);
   const [menuOpened, setMenuOpened] = useState(false);
-  const {effects: events} = useAppStore();
+  const { effects: events } = useAppStore();
 
   return (
     <Paper key={index} p="md">
@@ -51,7 +51,7 @@ export const LayoutConfigSection: React.FC<LayoutConfigSectionProps> = ({
 
             <ActionIcon
               size="lg"
-              color= "red" 
+              color="red"
               radius="xl"
               onClick={() => setMenuOpened(true)}
             >
@@ -71,34 +71,38 @@ export const LayoutConfigSection: React.FC<LayoutConfigSectionProps> = ({
           </Group>
         </Group>
       </Group>
-
+      <Title styles={{ root: { marginTop: "30px" } }} order={5} mb="md">
+        Layout Dependencies
+      </Title>
+      <LayoutMultiSelect
+        key={index}
+        showButton={isOpen}
+        layoutConfig={mapConfig}
+      />
       {isOpen && (
         <>
-          <Title styles={{ root: { marginTop: "30px" } }} order={5} mb="md">
-            Layout Dependencies
-          </Title>
-          <LayoutMultiSelect key={index} layoutConfig={config} />
           <Divider styles={{ root: { marginTop: "30px" } }} />
           <Title styles={{ root: { marginTop: "20px" } }} order={5} mb="md">
             Set Variables
           </Title>
 
           {/* Display all variables from layoutConfig in their own Paper */}
-          {config.variables.map((variableConfig) => (
+          {mapConfig.variables.map((variableConfig) => (
             <VariableCard
               key={variableConfig.id}
               variableConfig={variableConfig}
-              config={config}
-              onAddDependent={()=>{}}
+              config={mapConfig}
             />
           ))}
 
           {/* Add Variable button to open modal */}
-          <Button onClick={() => {
-            events.modal.setIsImageVariableMappingModalOpen(true);
-            events.modal.setCurrentSelectedMapId(config.id);
-            events.modal.setCurrentAddImageMappingSelectedVariables([]);
-          }}>
+          <Button
+            onClick={() => {
+              events.modal.setIsImageVariableMappingModalOpen(true);
+              events.modal.setCurrentSelectedMapId(mapConfig.id);
+              events.modal.setCurrentAddImageMappingSelectedVariables([]);
+            }}
+          >
             <IconPlus />
             <span style={{ marginLeft: "10px" }}>Add Variables</span>
           </Button>

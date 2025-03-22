@@ -28,15 +28,12 @@ export const AddMappingImageVariableModal: React.FC = () => {
 
         if ( mapId == null) return
 
-        state.modal.currentAddImageMappingSelectedVariables.forEach(variable => {
+        state.modal.currentAddImageMappingSelectedVariables.forEach(variableId => {
             effects.studio.layoutImageMapping.addImageVariable({
-                configId: mapId,
+                mapId: mapId,
                 imageVariable: {
-                  id: variable,
-                  dependents: [],
-                  useFolderPath: true,
-                  folderPath: "",
-                  imageName: [],
+                  id: variableId,
+                  dependentGroup: [],
                 },
               });
         })

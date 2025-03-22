@@ -4,19 +4,32 @@ export type Layout = {
   parentId?: string;
 };
 
-export type Variable =  {
+/**
+ * Base type with common properties for all variable types
+ */
+export type VariableBase = {
   id: string;
-  type: "image" | "shortText" | "boolean";
   name: string;
-  value: string;
-} | {
+  isVisiblie: boolean;
+};
 
-  id: string;
+export type TextImageVariable = VariableBase & {
+  type: "image" | "shortText";
+  value: string;
+};
+
+export type ListVariable = VariableBase & {
   type: "list";
-  name: string;
   value: string;
   items: Item[];
-}
+};
+
+export type BooleanVariable = VariableBase & {
+  type: "boolean";
+  value: boolean;
+};
+
+export type Variable = TextImageVariable | ListVariable | BooleanVariable;
 
 export type Item = {
   value: string;
@@ -25,5 +38,5 @@ export type Item = {
 
 export type Doc = {
   layouts: Layout[];
-  variables: Variable[]; 
+  variables: Variable[];
 };

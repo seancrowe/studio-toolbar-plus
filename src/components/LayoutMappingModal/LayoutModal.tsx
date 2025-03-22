@@ -1,4 +1,4 @@
-import { type LayoutConfig } from "../../types/layoutConfigTypes";
+import { type LayoutMap } from "../../types/layoutConfigTypes";
 import { useAppStore } from "../../modalStore";
 import { loadConfigFromDoc } from "../../studio/layoutConfigHandler";
 import React, { useEffect, useState, useMemo } from "react";
@@ -66,7 +66,7 @@ export const LayoutImageMappingModal: React.FC<
   };
 
   // Handle layout config changes
-  const handleConfigChange = (updatedConfig: LayoutConfig[]) => {
+  const handleConfigChange = (updatedConfig: LayoutMap[]) => {
     events.studio.layoutImageMapping.load(updatedConfig);
   };
 
@@ -164,7 +164,7 @@ export const LayoutImageMappingModal: React.FC<
               {state.studio.layoutImageMapping.map((config, index) => (
                 <LayoutConfigSection
                   key={index}
-                  config={config}
+                  mapConfig={config}
                   index={index}
                   
                   // onAddDependent={(configId, variableId) => {
