@@ -40,11 +40,16 @@ type LayoutImageMappingModalEffects = {
 
 type StudioState = {
   document: Doc;
+  isDocumentLoaded: boolean;
   layoutImageMapping: LayoutMap[];
   isLayoutConfigLoaded: boolean;
 };
 
 type StudioEffects = {
+  document: {
+    load: (doc: Doc) => void;
+    unload: () => void;
+  };
   layoutImageMapping: {
     addLayoutMap: () => void;
     addLayoutMapFromCopy: (mapId: string) => void;
@@ -107,6 +112,7 @@ type StudioEffects = {
       newVariableValueIndex: number;
     }) => void;
     load: (configs: LayoutMap[]) => void;
+    unload: () => void;
     save: () => void;
   };
 };
@@ -140,7 +146,9 @@ const saveLayoutConfigToJSON = (config: LayoutMap[]) => {
   // To be implemented
 };
 
-export const useAppStore = () => appStore() as AppStore;
+export const useAppStore = (): AppStore => appStore();
+
+const unloadedDoc = { layouts: [], variables: [] };
 
 export const appStore = create<AppStore>()(
   immer((set, get) => ({
@@ -159,14 +167,9 @@ export const appStore = create<AppStore>()(
       },
       studio: {
         isLayoutConfigLoaded: false,
-        document: mockDocData(),
-        layoutImageMapping: [
-          {
-            id: "",
-            layoutIds: [],
-            variables: [],
-          },
-        ],
+        isDocumentLoaded: false,
+        document: unloadedDoc,
+        layoutImageMapping: [],
       },
       isToolbarVisible: false,
       isToolbarEnabled: true,
@@ -219,6 +222,18 @@ export const appStore = create<AppStore>()(
         },
       },
       studio: {
+        document: {
+          load: (doc) =>
+            set((store) => {
+              store.state.studio.isDocumentLoaded = true;
+              store.state.studio.document = doc;
+            }),
+          unload: () =>
+            set((store) => {
+              store.state.studio.document = unloadedDoc;
+              store.state.studio.isDocumentLoaded = false;
+            }),
+        },
         layoutImageMapping: {
           addLayoutMap: () =>
             set((store) => {
@@ -500,6 +515,11 @@ export const appStore = create<AppStore>()(
                   new Error("For load layout config is already loaded"),
                 );
               }
+            }),
+          unload: () =>
+            set((store) => {
+              store.state.studio.layoutImageMapping = [];
+              store.state.studio.isLayoutConfigLoaded = false;
             }),
           save: () => {
             const store = get();

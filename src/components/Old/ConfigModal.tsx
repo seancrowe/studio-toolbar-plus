@@ -2,10 +2,10 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useModalStore } from "../../modalStore.ts";
-import { loadConfigFromDoc } from "../../studio/layoutConfigHandler.ts";
-import type { LayoutConfig, Variables } from "../../types/layoutConfigTypes.ts";
-import MultiSelect from '../LayoutMappingModal/MultiSelect.tsx';
-import TagSelect from './TagSelect.tsx';
+import { loadLayoutImageMapFromDoc } from "../../studio/documentHandler.ts";
+import type { LayoutMap, Variables } from "../../types/layoutConfigTypes.ts";
+import MultiSelect from "./MultiSelect.tsx";
+import TagSelect from "./TagSelect.tsx";
 
 const ModalOverlay = styled.div`
   position: fixed;
@@ -105,7 +105,7 @@ const Input = styled.input`
   padding: 6px 8px;
   color: #fff;
   font-size: 14px;
-  
+
   &:focus {
     outline: none;
     border-color: #666;
@@ -121,7 +121,7 @@ const TextArea = styled.textarea`
   font-size: 14px;
   min-height: 80px;
   resize: vertical;
-  
+
   &:focus {
     outline: none;
     border-color: #666;
@@ -155,7 +155,7 @@ const LoadingSpinner = styled.div`
   justify-content: center;
   align-items: center;
   height: 100%;
-  
+
   &:after {
     content: "";
     width: 40px;
@@ -165,10 +165,14 @@ const LoadingSpinner = styled.div`
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
-  
+
   @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
   }
 `;
 
@@ -177,11 +181,14 @@ interface ConfigModalProps {
 }
 
 interface LayoutConfigEditorProps {
-  config: LayoutConfig;
-  onChange: (updatedConfig: LayoutConfig) => void;
+  config: LayoutMap;
+  onChange: (updatedConfig: LayoutMap) => void;
 }
 
-const LayoutConfigEditor: React.FC<LayoutConfigEditorProps> = ({ config, onChange }) => {
+const LayoutConfigEditor: React.FC<LayoutConfigEditorProps> = ({
+  config,
+  onChange,
+}) => {
   // Function to handle layout changes
   const handleLayoutChange = (index: number, value: string) => {
     const updatedLayouts = [...config.layoutIds];
@@ -208,7 +215,7 @@ const LayoutConfigEditor: React.FC<LayoutConfigEditorProps> = ({ config, onChang
 
     onChange({
       ...config,
-      layoutIds: updatedLayouts
+      layoutIds: updatedLayouts,
     });
   };
 
@@ -216,30 +223,30 @@ const LayoutConfigEditor: React.FC<LayoutConfigEditorProps> = ({ config, onChang
   const handleVariableChange = (
     variableName: string,
     field: keyof Variables[string],
-    value: any
+    value: any,
   ) => {
     const updatedVariables = { ...config.variables };
 
-    if (field === 'folderPath') {
+    if (field === "folderPath") {
       updatedVariables[variableName] = {
         ...updatedVariables[variableName],
-        folderPath: value
+        folderPath: value,
       };
-    } else if (field === 'imageName') {
+    } else if (field === "imageName") {
       updatedVariables[variableName] = {
         ...updatedVariables[variableName],
-        imageName: Array.isArray(value) ? value : [value]
+        imageName: Array.isArray(value) ? value : [value],
       };
-    } else if (field === 'dependents') {
+    } else if (field === "dependents") {
       updatedVariables[variableName] = {
         ...updatedVariables[variableName],
-        dependents: value
+        dependents: value,
       };
     }
 
     onChange({
       ...config,
-      variables: updatedVariables
+      variables: updatedVariables,
     });
   };
 
@@ -251,13 +258,13 @@ const LayoutConfigEditor: React.FC<LayoutConfigEditorProps> = ({ config, onChang
       [newVarName]: {
         dependents: {},
         folderPath: "",
-        imageName: [""]
-      }
+        imageName: [""],
+      },
     };
 
     onChange({
       ...config,
-      variables: updatedVariables
+      variables: updatedVariables,
     });
   };
 
@@ -268,11 +275,11 @@ const LayoutConfigEditor: React.FC<LayoutConfigEditorProps> = ({ config, onChang
 
     onChange({
       ...config,
-      variables: updatedVariables
+      variables: updatedVariables,
     });
   };
 
-  const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4', 'Option 5'];
+  const options = ["Option 1", "Option 2", "Option 3", "Option 4", "Option 5"];
 
   return (
     <LayoutConfigContainer>
@@ -315,7 +322,9 @@ const LayoutConfigEditor: React.FC<LayoutConfigEditorProps> = ({ config, onChang
                 <Input
                   type="text"
                   value={varConfig.folderPath}
-                  onChange={(e) => handleVariableChange(varName, 'folderPath', e.target.value)}
+                  onChange={(e) =>
+                    handleVariableChange(varName, "folderPath", e.target.value)
+                  }
                 />
               </InputGroup>
 
@@ -323,10 +332,12 @@ const LayoutConfigEditor: React.FC<LayoutConfigEditorProps> = ({ config, onChang
                 <InputLabel>Image Names (comma separated)</InputLabel>
                 <Input
                   type="text"
-                  value={varConfig.imageName.join(', ')}
+                  value={varConfig.imageName.join(", ")}
                   onChange={(e) => {
-                    const imageNames = e.target.value.split(',').map(name => name.trim());
-                    handleVariableChange(varName, 'imageName', imageNames);
+                    const imageNames = e.target.value
+                      .split(",")
+                      .map((name) => name.trim());
+                    handleVariableChange(varName, "imageName", imageNames);
                   }}
                 />
               </InputGroup>
@@ -338,7 +349,7 @@ const LayoutConfigEditor: React.FC<LayoutConfigEditorProps> = ({ config, onChang
                   onChange={(e) => {
                     try {
                       const dependents = JSON.parse(e.target.value);
-                      handleVariableChange(varName, 'dependents', dependents);
+                      handleVariableChange(varName, "dependents", dependents);
                     } catch (error) {
                       // Handle JSON parse error
                       console.error("Invalid JSON format", error);
@@ -368,10 +379,12 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
   useEffect(() => {
     const loadConfig = async () => {
       if (!isConfigLoaded) {
-        const result = await loadConfigFromDoc();
+        const result = await loadLayoutImageMapFromDoc();
 
-        result.fold((config) => updateLayoutConfig(config), () => raiseError(result))
-
+        result.fold(
+          (config) => updateLayoutConfig(config),
+          () => raiseError(result),
+        );
       }
     };
 
@@ -387,7 +400,7 @@ export const ConfigModal: React.FC<ConfigModalProps> = ({
   };
 
   // Handle layout config changes
-  const handleConfigChange = (updatedConfig: LayoutConfig) => {
+  const handleConfigChange = (updatedConfig: LayoutMap) => {
     updateLayoutConfig(updatedConfig);
   };
 

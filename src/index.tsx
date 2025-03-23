@@ -2,8 +2,8 @@ import React from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { ConfigModal } from "./components/Old/ConfigModal.tsx";
 import { appStore } from "./modalStore";
-import { Toolbar, ToolbarHover } from "./components/Toolbar.tsx";
-import { ToolbarButton } from "./components/ToolbarButton.tsx";
+import { Toolbar, ToolbarHover } from "./components/Old/Toolbar.tsx";
+import { ToolbarButton } from "./components/Old/ToolbarButton.tsx";
 import type { default as SDKType } from "@chili-publish/studio-sdk";
 import { LayoutImageMappingModal } from "./components/LayoutMappingModal/LayoutModal.tsx";
 import "@mantine/core/styles.css";
@@ -109,4 +109,4 @@ function renderConfigModal(): void {
 setTimeout(() => {
   initToolbar();
   renderConfigModal();
-}, 50);
+}, 11000);

@@ -1,6 +1,9 @@
 import { type LayoutMap } from "../../types/layoutConfigTypes";
 import { useAppStore } from "../../modalStore";
-import { loadConfigFromDoc } from "../../studio/layoutConfigHandler";
+import {
+  loadDocFromDoc,
+  loadLayoutImageMapFromDoc,
+} from "../../studio/documentHandler";
 import React, { useEffect, useState, useMemo } from "react";
 import styled from "styled-components";
 import {
@@ -11,6 +14,7 @@ import {
   Title,
   Modal,
 } from "@mantine/core";
+import { IconPlus } from "@tabler/icons-react";
 import { AddMappingImageVariableModal } from "./AddMappingImageVariableModal";
 import { AddDependentModal } from "./AddDependentModal";
 import { LayoutConfigSection } from "./LayoutConfigSelection";
@@ -24,7 +28,6 @@ type LayoutImageMappingModalProps = {
 export const LayoutImageMappingModal: React.FC<
   LayoutImageMappingModalProps
 > = ({ onExportCSV = () => console.log("Export CSV clicked") }) => {
-
   const { state, effects: events, raiseError } = useAppStore();
 
   // Filter image variables from documentState
@@ -45,10 +48,19 @@ export const LayoutImageMappingModal: React.FC<
   // Load config when component mounts if it"s not loaded yet
   useEffect(() => {
     const loadConfig = async () => {
+      console.log("LOADING");
       if (!state.studio.isLayoutConfigLoaded) {
-        const result = await loadConfigFromDoc();
+        const result = await loadLayoutImageMapFromDoc();
+        console.log("result", result);
         result.fold(
           (config) => events.studio.layoutImageMapping.load(config),
+          () => raiseError(result),
+        );
+      }
+      if (!state.studio.isDocumentLoaded) {
+        const result = await loadDocFromDoc();
+        result.fold(
+          (doc) => events.studio.document.load(doc),
           () => raiseError(result),
         );
       }
@@ -70,44 +82,21 @@ export const LayoutImageMappingModal: React.FC<
     events.studio.layoutImageMapping.load(updatedConfig);
   };
 
-  // Function to update the config with a new variable
-  
-
-    // Reset state and close modal
-    
-
-  // Function to add a dependent to a variable
-  // const addDependent = () => {
-  //   if (
-  //     selectedDependentVariables &&
-  //     currentVariableId &&
-  //     currentConfigIndex !== -1
-  //   ) {
-  //     selectedDependentVariables.forEach((selectedDependentVariables) => {
-  //       // Use the updateDependent function from the store
-  //       events.studio.layoutImageMapping.updateDependent({
-  //         configId: state.studio.layoutImageMapping[currentConfigIndex].id,
-  //         imageVariableId: currentVariableId,
-  //         dependent: {
-  //           variableId: selectedDependentVariables,
-  //           values: [],
-  //         },
-  //       });
-  //     });
-
-  //     // Reset state and close modal!
-  //     setSelectedDependentVariable([]);
-  //     setIsAddDependentModalOpen(false);
-  //   }
-  // };
-
   // Modal Header Component
   const ModalHeader: React.FC = () => {
     return (
       <TopBar>
-        <Title order={4} c="white">
-          Layout Image Mapping Tool
-        </Title>
+        <Group justify="space-between" w="100%">
+          <Title order={4} c="white">
+            Layout Image Mapping Tool
+          </Title>
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={() => events.studio.layoutImageMapping.addLayoutMap()}
+          >
+            Add Mapping
+          </Button>
+        </Group>
       </TopBar>
     );
   };
@@ -157,7 +146,8 @@ export const LayoutImageMappingModal: React.FC<
         <ModalHeader />
 
         <Content>
-          {!state.studio.isLayoutConfigLoaded ? (
+          {!state.studio.isLayoutConfigLoaded ||
+          !state.studio.isDocumentLoaded ? (
             <LoadingSpinner />
           ) : (
             <Stack h="100%" gap="md">
@@ -166,7 +156,7 @@ export const LayoutImageMappingModal: React.FC<
                   key={index}
                   mapConfig={config}
                   index={index}
-                  
+
                   // onAddDependent={(configId, variableId) => {
                   //   setCurrentConfigIndex(
                   //     state.studio.layoutImageMapping.findIndex(
@@ -185,11 +175,9 @@ export const LayoutImageMappingModal: React.FC<
         <ModalFooter />
       </Modal>
 
-      <AddMappingImageVariableModal
-      />
+      <AddMappingImageVariableModal />
 
-      <AddDependentModal
-      />
+      <AddDependentModal />
     </MantineProvider>
   );
 };

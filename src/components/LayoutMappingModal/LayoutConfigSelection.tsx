@@ -5,6 +5,8 @@ import {
   ActionIcon,
   Divider,
   Button,
+  Modal,
+  Text,
 } from "@mantine/core";
 import { useState } from "react";
 import type { LayoutMap } from "../../types/layoutConfigTypes";
@@ -31,20 +33,25 @@ export const LayoutConfigSection: React.FC<LayoutConfigSectionProps> = ({
   mapConfig,
   index,
 }) => {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
   const [menuOpened, setMenuOpened] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const { effects: events } = useAppStore();
 
   return (
     <Paper key={index} p="md">
       <Group justify="space-between" mb={20}>
-        <Title>Layout Configuration</Title>
+        <Title order={3}>Layout Mapping #{index + 1}</Title>
         <Group>
           <Group gap="xs">
             <ActionIcon
               size="lg"
               radius="xl"
-              onClick={() => setMenuOpened(true)}
+              onClick={() =>
+                events.studio.layoutImageMapping.addLayoutMapFromCopy(
+                  mapConfig.id,
+                )
+              }
             >
               <IconCopy />
             </ActionIcon>
@@ -53,7 +60,7 @@ export const LayoutConfigSection: React.FC<LayoutConfigSectionProps> = ({
               size="lg"
               color="red"
               radius="xl"
-              onClick={() => setMenuOpened(true)}
+              onClick={() => setDeleteModalOpen(true)}
             >
               <IconTrashFilled />
             </ActionIcon>
@@ -108,6 +115,32 @@ export const LayoutConfigSection: React.FC<LayoutConfigSectionProps> = ({
           </Button>
         </>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        opened={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Confirm Deletion"
+        centered
+      >
+        <Text size="sm" mb="lg">
+          Are you sure you want to delete this mapping?
+        </Text>
+        <Group justify="flex-end" mt="md">
+          <Button variant="outline" onClick={() => setDeleteModalOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            color="red"
+            onClick={() => {
+              events.studio.layoutImageMapping.deleteLayoutMap(mapConfig.id);
+              setDeleteModalOpen(false);
+            }}
+          >
+            Delete
+          </Button>
+        </Group>
+      </Modal>
     </Paper>
   );
 };

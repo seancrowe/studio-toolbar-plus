@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import React, { type ReactNode, useCallback } from "react";
-import { useAppStore } from "../modalStore";
+import { useAppStore } from "../../modalStore";
 
 // Styled components for the toolbar with dynamic visibility
 const ToolbarStyle = styled.div<{ $visible: boolean }>`

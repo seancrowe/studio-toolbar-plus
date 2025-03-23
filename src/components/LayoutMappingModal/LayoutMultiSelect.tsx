@@ -44,10 +44,19 @@ export const LayoutMultiSelect: React.FC<LayoutMultiSelectProps> = ({
   return (
     <Group>
       <MultiSelect
-        data={state.studio.document.layouts.map((layout) => ({
-          value: layout.id,
-          label: layout.name,
-        }))}
+        data={state.studio.document.layouts.map((layout) => {
+          // Get all layout IDs that are already assigned to other LayoutMaps
+          const assignedToOtherMaps = state.studio.layoutImageMapping
+            .filter((map) => map.id !== layoutConfig.id) // Exclude current map
+            .flatMap((map) => map.layoutIds); // Get all layout IDs from other maps
+
+          // Mark layout as disabled if it's already assigned to another map
+          return {
+            value: layout.id,
+            label: layout.name,
+            disabled: assignedToOtherMaps.includes(layout.id),
+          };
+        })}
         value={
           state.studio.layoutImageMapping.find((lc) => lc.id == layoutConfig.id)
             ?.layoutIds
@@ -89,17 +98,3 @@ export const LayoutMultiSelect: React.FC<LayoutMultiSelectProps> = ({
     </Group>
   );
 };
-
-/** 
- *
-    <MultiSelect
-      data={documentState.layouts.map(layout => ({ value: layout.id, label: layout.name }))}
-      value={layoutConfigs.find(lc => lc.id == layoutConfig.id)?.layoutIds}
-      onChange={handleMultiSelectChange}
-      label="Layouts"
-      placeholder="Select layouts"
-      searchable
-      clearable
-    />
- *
- * */
