@@ -72,7 +72,8 @@ export const LayoutImageMappingModal: React.FC<
   if (!state.modal.isModalVisible) return null;
 
   const handleClose = () => {
-    events.studio.layoutImageMapping.save();
+    events.studio.document.unload();
+    events.studio.layoutImageMapping.unload();
     events.modal.hideModal();
     // enableToolbar();
   };
@@ -107,6 +108,7 @@ export const LayoutImageMappingModal: React.FC<
       <BottomBar>
         <Group justify="flex-end" gap="sm">
           <Button onClick={onExportCSV}>Export CSV</Button>
+          <Button color="green" onClick={handleClose}>Save</Button>
           <Button onClick={handleClose}>Close</Button>
         </Group>
       </BottomBar>

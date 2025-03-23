@@ -9,7 +9,10 @@ type GetPrivateDataProps = {
 };
 
 export async function getPrivateData({ studio, id }: GetPrivateDataProps) {
+
   const result = await handleStudioFunc(studio.layout.getPrivateData, id);
+
+  console.log(result);
 
   if (result.isError()) return result;
 

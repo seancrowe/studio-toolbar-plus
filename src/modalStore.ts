@@ -156,7 +156,7 @@ export const appStore = create<AppStore>()(
       modal: {
         isAddImageVariableMappingModalOpen: false,
         currentAddImageMappingSelectedVariables: [],
-        isModalVisible: true,
+        isModalVisible: false,
         currentSelectedMapId: null,
         dependentModal: {
           isOpen: false,
