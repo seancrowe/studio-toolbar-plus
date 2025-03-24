@@ -6,7 +6,12 @@ import {
   setPrivateData,
   getAllLayouts,
 } from "./layoutHandler.ts";
-import { createVariable, getAllVariables, setVariableValue } from "./variableHandler.ts";
+import {
+  createVariable,
+  getAllVariables,
+  setOrCreateVariableValue,
+  setVariableValue,
+} from "./variableHandler.ts";
 import {
   type PrivateData,
   type ActionTrigger,
@@ -230,7 +235,7 @@ export async function saveLayoutMappingToAction(
       .replace('"%DATA%"', JSON.stringify(actionMap)) +
     "\nconsole.log(imageSelectionScript(true))";
 
-  await updateAction(
+  const updateResult = await updateAction(
     {
       name: "AUTO_GEN_TOOLBAR",
       studio: window.SDK,
@@ -244,6 +249,17 @@ export async function saveLayoutMappingToAction(
       script: script,
     },
   );
+
+  return updateResult;
+
+  // return updateResult.map(async (_) => {
+  //   return await setOrCreateVariableValue({
+  //     studio: window.SDK,
+  //     name: "AUTO_GEN_JSON",
+  //     value: JSON.stringify(actionMap),
+  //     variableType: VariableType.shortText,
+  //   });
+  // });
 }
 
 export async function convertOldMap(variableId: string) {
@@ -281,8 +297,14 @@ export async function convertOldMap(variableId: string) {
 
     // Save the layout maps to the document
     //return await saveLayoutImageMapToDoc(layoutMaps);
-    const idResult = await createVariable({studio, variableType:VariableType.shortText, name:"JSON_COVERTED"});
-    idResult.onSuccess(id => setVariableValue({studio, id, value:JSON.stringify(layoutMaps)}))
+    const idResult = await createVariable({
+      studio,
+      variableType: VariableType.shortText,
+      name: "JSON_COVERTED",
+    });
+    idResult.onSuccess((id) =>
+      setVariableValue({ studio, id, value: JSON.stringify(layoutMaps) }),
+    );
   } catch (error) {
     return Result.error(
       error instanceof Error ? error : new Error(String(error)),

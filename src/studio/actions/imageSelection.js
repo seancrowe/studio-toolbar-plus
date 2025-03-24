@@ -85,7 +85,10 @@ export function imageSelectionScript(debug) {
         continue;
       }
 
-      const variableValue = replaceVariables(variableMatch.value);
+      const variableValue = replaceVariables(
+        variableMatch.value,
+        variableMatch.transforms,
+      );
 
       setVariableValue(imageVar.name, variableValue);
 
@@ -94,11 +97,17 @@ export function imageSelectionScript(debug) {
       }
     }
 
-    function replaceVariables(input) {
+    function replaceVariables(input, allTransforms) {
       // Use a regular expression to match ${NAME}
       return input.replace(/\${(.*?)}/g, (_, name) => {
-        // Call getVariableValue with the extracted name
-        return getVariableValue(name);
+        const variableValue = getVariableValue(name);
+        const currentTransforms = allTransforms[name];
+        return currentTransforms.reduce((previousValue, transform) => {
+          if (transform.replaceAll) {
+            return previousValue.replaceAll(transform.find, transform.replace);
+          }
+          return previousValue.replace(transform.find, transform.replace);
+        }, variableValue);
       });
     }
 

@@ -1,7 +1,6 @@
 import type { Doc } from "../types/docStateTypes";
 import type { LayoutMap, ImageVariable } from "../types/layoutConfigTypes";
 
-
 export function layoutMappingToActionMap(layoutMaps: LayoutMap[], doc: Doc) {
   const actionMap: Record<string, Record<string, any>> = {};
 
@@ -41,7 +40,7 @@ export function layoutMappingToActionMap(layoutMaps: LayoutMap[], doc: Doc) {
               group.dependents.forEach((dependent) => {
                 // Find the variable in the document by ID
                 const dependentVar = doc.variables.find(
-                  (v) => v.id === dependent.variableId
+                  (v) => v.id === dependent.variableId,
                 );
 
                 if (dependentVar) {
@@ -74,7 +73,7 @@ export function layoutMappingToActionMap(layoutMaps: LayoutMap[], doc: Doc) {
               const generateCombinations = (
                 arrays: string[][],
                 current: string[] = [],
-                index: number = 0
+                index: number = 0,
               ): string[][] => {
                 if (index === arrays.length) {
                   return [current];
@@ -86,8 +85,8 @@ export function layoutMappingToActionMap(layoutMaps: LayoutMap[], doc: Doc) {
                     ...generateCombinations(
                       arrays,
                       [...current, value],
-                      index + 1
-                    )
+                      index + 1,
+                    ),
                   );
                 }
                 return result;
@@ -101,8 +100,14 @@ export function layoutMappingToActionMap(layoutMaps: LayoutMap[], doc: Doc) {
                 const valueKey = combination.join("|");
 
                 // Initialize the value key entry if it doesn't exist
-                if (!actionMap[layoutName][docVariable.name][dependentKey][valueKey]) {
-                  actionMap[layoutName][docVariable.name][dependentKey][valueKey] = { value: "" };
+                if (
+                  !actionMap[layoutName][docVariable.name][dependentKey][
+                    valueKey
+                  ]
+                ) {
+                  actionMap[layoutName][docVariable.name][dependentKey][
+                    valueKey
+                  ] = { value: "" };
                 }
 
                 // Process the variable values to create the concatenated string
@@ -113,7 +118,7 @@ export function layoutMappingToActionMap(layoutMaps: LayoutMap[], doc: Doc) {
                     } else if (varValue.id) {
                       // Find the variable in the document by ID
                       const valueVar = doc.variables.find(
-                        (v) => v.id === varValue.id
+                        (v) => v.id === varValue.id,
                       );
                       if (valueVar) {
                         return `\${${valueVar.name}}`;
@@ -123,8 +128,31 @@ export function layoutMappingToActionMap(layoutMaps: LayoutMap[], doc: Doc) {
                   })
                   .join("");
 
+                console.log("VALUES", group.variableValue);
+
+                const transforms = group.variableValue
+                  .filter((varValue) => typeof varValue != "string")
+                  .reduce((obj: Record<string, any>, varValue) => {
+                    if (varValue.id) {
+                      // Find the variable in the document by ID
+                      const valueVar = doc.variables.find(
+                        (v) => v.id === varValue.id,
+                      );
+                      if (valueVar) {
+                        obj[valueVar.name] = varValue.transform;
+                      }
+                    }
+                    return obj;
+                  }, {});
+
                 // Set the value property
-                actionMap[layoutName][docVariable.name][dependentKey][valueKey].value = valueString;
+                actionMap[layoutName][docVariable.name][dependentKey][
+                  valueKey
+                ].value = valueString;
+
+                actionMap[layoutName][docVariable.name][dependentKey][
+                  valueKey
+                ].transforms = transforms;
               });
             });
           }

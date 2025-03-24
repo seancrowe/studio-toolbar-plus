@@ -4,7 +4,8 @@ import {
   loadDocFromDoc,
   loadLayoutImageMapFromDoc,
   saveLayoutImageMapToDoc,
-  saveLayoutMappingToAction, } from "../../studio/studioAdapter";
+  saveLayoutMappingToAction,
+} from "../../studio/studioAdapter";
 import React, { useEffect, useState, useMemo } from "react";
 import styled from "styled-components";
 import {
@@ -82,20 +83,18 @@ export const LayoutImageMappingModal: React.FC<
 
   const handleSave = async () => {
     // Save the layout image mapping to the document
-    const result = await saveLayoutImageMapToDoc(
+    const saveToDocResult = await saveLayoutImageMapToDoc(
       state.studio.layoutImageMapping,
-    );
-    
-    const actionMap = await saveLayoutMappingToAction(
-      state.studio.layoutImageMapping,
-      state.studio.document,
     );
 
-    if (result.isOk()) {
-      handleClose();
-    } else {
-      raiseError(result);
-    }
+    saveToDocResult
+      .map(async (_) => {
+        return await saveLayoutMappingToAction(
+          state.studio.layoutImageMapping,
+          state.studio.document,
+        );
+      })
+      .fold(handleClose, (e) => (e ? raiseError(e) : e));
   };
 
   // Handle layout config changes

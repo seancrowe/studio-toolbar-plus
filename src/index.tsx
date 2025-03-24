@@ -9,6 +9,8 @@ import { MantineProvider, createTheme } from "@mantine/core";
 import { LayoutMultiSelect } from "./components/LayoutMappingModal/LayoutMultiSelect.tsx";
 import { Toolbar } from "./components/Toolbar.tsx";
 import { AlertsContainer } from "./components/AlertsContainer.tsx";
+import { setEnableActions } from "./studio/actionHandler.ts";
+import { getStudio } from "./studio/studioAdapter.ts";
 
 // Create a theme for Mantine
 const theme = createTheme({
@@ -42,7 +44,10 @@ const handleExportCSV = () => {
   // Implementation will come later
 };
 
-function renderToolbar(): void {
+async function renderToolbar() {
+  const studioResult = await getStudio();
+  studioResult.onSuccess((studio) => setEnableActions(studio, true));
+  
   // Create our modal root if it doesn't exist
   if (!window.rootInstance) {
     // Create div on body and use in it in the createRoot
