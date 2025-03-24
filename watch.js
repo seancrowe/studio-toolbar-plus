@@ -29,7 +29,8 @@ function watchDir(dir) {
 
 // Run the build command
 function runBuild() {
-  console.log('???  Running build...');
+  const now = new Date();
+  console.log(`???  Running build at ${now.toLocaleString()}...`);
 
   const startTime = Date.now();
   const buildProcess = spawn(BUILD_COMMAND, BUILD_ARGS, { stdio: 'inherit' });

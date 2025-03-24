@@ -16,7 +16,6 @@ pnpm-debug.log*
 node_modules
 .bun
 .DS_Store
-dist
 build
 .cache
 .parcel-cache

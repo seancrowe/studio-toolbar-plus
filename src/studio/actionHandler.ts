@@ -15,7 +15,7 @@ class ActionNotFoundError extends Error {
   readonly _tag = "ActionNotFoundError";
 }
 
-async function getAction({
+export async function getAction({
   studio,
   name,
 }: ActionData): Promise<Result<DocumentAction, Error>> {
@@ -32,23 +32,39 @@ async function getAction({
   });
 }
 
-async function createAction({ studio, name }: ActionData) {
+export async function createAction(studio: SDK) {
   return handleStudioFunc(studio.action.create);
 }
 
-async function updateAction(actionData: ActionData, script: ActionDeltaUpdate) {
+export async function updateAction(
+  actionData: ActionData,
+  update: ActionDeltaUpdate,
+) {
   const { studio } = actionData;
   const actionResult = await getAction(actionData);
 
   return actionResult
     .recover(async (error) => {
       if (error instanceof ActionNotFoundError) {
-        return createAction(actionData);
+        return createAction(actionData.studio);
       } else {
         return Result.error(error);
       }
     })
     .map((value) => {
-      return handleStudioFunc(studio.action.update, "", script);
+      return handleStudioFunc(
+        studio.action.update,
+        typeof value == "string" ? value : value.id,
+        update,
+      );
     });
 }
+
+export function setEnableActions(studio: SDK, value: boolean) {
+  if (value) {
+    studio.action.enable();
+  } else {
+    studio.action.disable();
+  }
+}
+

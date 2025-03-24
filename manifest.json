@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "super-grafx",
+  "name": "studio-toolbar-plus",
   "version": "0.2",
-  "description": "A simple example extension unlock TCCC",
+  "description": "A simple example extension to unlock Studio",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -27,8 +27,7 @@
     {
       "matches": [
         "file://*",
-        "*://*.chiligrafx.com/*",
-        "*://*.chili-publish.online/*"
+        "*://chiligrafx.com/environments/*/studio/templates/*"
       ],
       "js": ["content.js"],
       "all_frames": true
@@ -37,11 +36,7 @@
   "web_accessible_resources": [
     {
       "resources": ["dist/index.js", "dist/index.css"],
-      "matches": [
-        "file://*",
-        "*://*.chiligrafx.com/*",
-        "*://*.chili-publish.online/*"
-      ]
+      "matches": ["file://*", "*://*.chiligrafx.com/*"]
     }
   ]
 }
