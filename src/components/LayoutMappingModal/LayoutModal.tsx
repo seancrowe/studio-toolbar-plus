@@ -199,7 +199,11 @@ export const LayoutImageMappingModal: React.FC<
         <ModalFooter />
       </Modal>
 
-      <AddMappingImageVariableModal />
+      <AddMappingImageVariableModal
+        currentMapConfig={state.studio.layoutImageMapping.find(
+          config => config.id === state.modal.currentSelectedMapId
+        ) || null}
+      />
 
       <AddDependentModal />
     </MantineProvider>

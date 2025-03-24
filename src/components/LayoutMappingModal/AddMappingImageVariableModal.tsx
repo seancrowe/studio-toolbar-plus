@@ -2,20 +2,31 @@ import { Modal, Stack, MultiSelect, Group, Button } from "@mantine/core";
 import type React from "react";
 import { useAppStore } from "../../modalStore";
 import { useMemo } from "react";
+import type { LayoutMap } from "../../types/layoutConfigTypes";
 
+interface AddMappingImageVariableModalProps {
+  currentMapConfig: LayoutMap | null;
+}
 
-export const AddMappingImageVariableModal: React.FC = () => {
+export const AddMappingImageVariableModal: React.FC<AddMappingImageVariableModalProps> = ({
+  currentMapConfig
+}) => {
 
     const {state, effects} = useAppStore();
 
     const possibleVariableValues = useMemo(() => {
-        return state.studio.document.variables.filter(
-          (variable) => variable.type === "image",
-        ).map((variable) => ({
+        // Get all image variables
+        const allImageVariables = state.studio.document.variables
+          .filter((variable) => variable.type === "image")
+          .map((variable) => ({
             value: variable.id,
             label: variable.name,
+            // Disable if the variable is already in the current map config
+            disabled: currentMapConfig?.variables.some(v => v.id === variable.id) || false
           }));
-      }, [state.studio.document.variables]);
+        
+        return allImageVariables;
+      }, [state.studio.document.variables, currentMapConfig]);
 
       const onClose = () => {
         effects.modal.setIsImageVariableMappingModalOpen(false);
