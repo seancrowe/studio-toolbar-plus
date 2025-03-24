@@ -16,7 +16,7 @@ import {
   sortableKeyboardCoordinates,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { SortableCard } from "./DependentGroupSortableCard";
+import { DependentGroupValueSortableCard } from "./DependentGroupSortableCard";
 
 interface DependentGroupSetValueProps {
   groupIndex: number;
@@ -120,7 +120,7 @@ export const DependentGroupSetValue: React.FC<DependentGroupSetValueProps> = ({
           >
             <Group gap="xs" wrap="nowrap" style={{ minWidth: "100%" }}>
               {variableValue.map((value, index) => (
-                <SortableCard
+                <DependentGroupValueSortableCard
                   key={`item-${index}`}
                   id={`item-${index}`}
                   value={value}

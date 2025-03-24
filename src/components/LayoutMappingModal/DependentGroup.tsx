@@ -7,11 +7,17 @@ import {
   Card,
   MultiSelect,
 } from "@mantine/core";
-import { IconTrashFilled, IconPlus, IconX } from "@tabler/icons-react";
+import {
+  IconTrashFilled,
+  IconPlus,
+  IconX,
+  IconCopy,
+} from "@tabler/icons-react";
 import type {
   DependentGroup as DependentGroupType,
   DependentVar,
   ImageVariable,
+  LayoutMap,
 } from "../../types/layoutConfigTypes";
 import { useAppStore } from "../../modalStore";
 import { DependentGroupSetValue } from "./DependentGroupSetValue";
@@ -20,21 +26,18 @@ interface DependentGroupProps {
   dependentGroup: DependentGroupType;
   groupIndex: number;
   variableConfig: ImageVariable;
+  layoutMap: LayoutMap;
 }
 
 export const DependentGroup: React.FC<DependentGroupProps> = ({
   dependentGroup,
   groupIndex,
   variableConfig,
+  layoutMap,
 }) => {
   const bgColor = groupIndex % 2 === 0 ? "#5b575b" : "#335760";
 
-  const { state, effects } = useAppStore();
-
-  const mapId = state.modal.currentSelectedMapId;
-  const imageVariableId = state.modal.dependentModal.currentImageVariableId;
-
-  if (!mapId || !imageVariableId) return;
+  const { state, effects, raiseError } = useAppStore();
 
   // Function to open the modal for adding variables to an existing group
   const handleAddDependentToGroup = (groupIndex: number) => {
@@ -47,10 +50,20 @@ export const DependentGroup: React.FC<DependentGroupProps> = ({
   const handleRemoveGroup = (groupIndex: number) => {
     effects.studio.layoutImageMapping.removeDependentGroup({
       groupIndex,
-      imageVariableId,
-      mapId,
+      imageVariableId: variableConfig.id,
+      mapId: layoutMap.id,
     });
   };
+
+  const handleCopyGroup = (groupIndex: number) => {
+    effects.studio.layoutImageMapping.copyDependentGroup({
+      groupIndex,
+      imageVariableId: variableConfig.id,
+      mapId: layoutMap.id,
+    });
+  };
+
+  console.log(dependentGroup, groupIndex, variableConfig);
 
   // Function to get variable details by ID
   const getVariableById = (id: string) => {
@@ -71,15 +84,25 @@ export const DependentGroup: React.FC<DependentGroupProps> = ({
         <Text fw={500} size="sm" ta="center">
           Group {groupIndex + 1}
         </Text>
-        <ActionIcon
-          variant="subtle"
-          size="lg"
-          color="red"
-          radius="xl"
-          onClick={() => handleRemoveGroup(groupIndex)}
-        >
-          <IconTrashFilled />
-        </ActionIcon>
+        <Group gap="xs">
+          <ActionIcon
+            variant="subtle"
+            size="lg"
+            radius="xl"
+            onClick={() => handleCopyGroup(groupIndex)}
+          >
+            <IconCopy />
+          </ActionIcon>
+          <ActionIcon
+            variant="subtle"
+            size="lg"
+            color="red"
+            radius="xl"
+            onClick={() => handleRemoveGroup(groupIndex)}
+          >
+            <IconTrashFilled />
+          </ActionIcon>
+        </Group>
       </Group>
 
       {/* Grid of dependent variables */}
@@ -113,10 +136,10 @@ export const DependentGroup: React.FC<DependentGroupProps> = ({
                   }}
                   onClick={() => {
                     effects.studio.layoutImageMapping.removeDependent({
-                      imageVariableId,
+                      imageVariableId: variableConfig.id,
                       dependentGroupIndex: groupIndex,
                       dependent,
-                      mapId,
+                      mapId: layoutMap.id,
                     });
                   }}
                 >
@@ -139,8 +162,8 @@ export const DependentGroup: React.FC<DependentGroupProps> = ({
                     value={dependent.values}
                     onChange={(newValues) => {
                       effects.studio.layoutImageMapping.updateDependent({
-                        mapId,
-                        imageVariableId,
+                        mapId: layoutMap.id,
+                        imageVariableId: variableConfig.id,
                         dependentGroupIndex: groupIndex,
                         dependent: {
                           ...dependent,
@@ -163,8 +186,8 @@ export const DependentGroup: React.FC<DependentGroupProps> = ({
                     value={dependent.values}
                     onChange={(newValues) => {
                       effects.studio.layoutImageMapping.updateDependent({
-                        mapId,
-                        imageVariableId,
+                        mapId: layoutMap.id,
+                        imageVariableId: variableConfig.id,
                         dependentGroupIndex: groupIndex,
                         dependent: {
                           ...dependent,
@@ -208,8 +231,8 @@ export const DependentGroup: React.FC<DependentGroupProps> = ({
       {/* Value section with variable values */}
       <DependentGroupSetValue
         groupIndex={groupIndex}
-        imageVariableId={imageVariableId}
-        mapId={mapId}
+        imageVariableId={variableConfig.id}
+        mapId={layoutMap.id}
         variableValue={dependentGroup.variableValue}
       />
     </Stack>

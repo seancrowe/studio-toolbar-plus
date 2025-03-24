@@ -1,6 +1,6 @@
-import { ActionIcon, Text, Card, Input, Select } from "@mantine/core";
-import { IconX, IconGripVertical } from "@tabler/icons-react";
-import type { Variable, StudioList } from "../../types/layoutConfigTypes";
+import { ActionIcon, Text, Card, Input, Select, Modal, Stack, Button, Checkbox, Group } from "@mantine/core";
+import { IconX, IconGripVertical, IconWand, IconPlus } from "@tabler/icons-react";
+import type { Variable, StudioList, TransformCommands } from "../../types/layoutConfigTypes";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAppStore } from "../../modalStore";
@@ -16,7 +16,7 @@ export interface SortableCardProps {
 }
 
 // Sortable card component that wraps each card and makes it draggable
-export const SortableCard: React.FC<SortableCardProps> = ({
+export const DependentGroupValueSortableCard: React.FC<SortableCardProps> = ({
   id,
   value,
   groupIndex,

@@ -8,6 +8,7 @@ import "@mantine/core/styles.css";
 import { MantineProvider, createTheme } from "@mantine/core";
 import { LayoutMultiSelect } from "./components/LayoutMappingModal/LayoutMultiSelect.tsx";
 import { Toolbar } from "./components/Toolbar.tsx";
+import { AlertsContainer } from "./components/AlertsContainer.tsx";
 
 // Create a theme for Mantine
 const theme = createTheme({
@@ -64,17 +65,16 @@ function renderToolbar(): void {
   // Render the modal
   window.rootInstance.render(
     <React.StrictMode>
-      <MantineProvider theme={theme}>
         <LayoutImageMappingModal onExportCSV={() => console.log("Look")} />
-      </MantineProvider>
     </React.StrictMode>,
   );
 
   // Render the toolbar
   window.toolbarInstance.render(
     <React.StrictMode>
-      <MantineProvider theme={theme}>
+      <MantineProvider>
         <Toolbar />
+        <AlertsContainer />
       </MantineProvider>
     </React.StrictMode>,
   );

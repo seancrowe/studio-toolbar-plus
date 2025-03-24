@@ -40,7 +40,7 @@ export const LayoutConfigSection: React.FC<LayoutConfigSectionProps> = ({
 
   return (
     <Paper key={index} p="md">
-      <Group justify="space-between" mb={20}>
+      <Group justify="space-between" mb={20} onClick={() => setIsOpen(!isOpen)}>
         <Title order={3}>Layout Mapping #{index + 1}</Title>
         <Group>
           <Group gap="xs">
@@ -98,7 +98,7 @@ export const LayoutConfigSection: React.FC<LayoutConfigSectionProps> = ({
             <VariableCard
               key={variableConfig.id}
               variableConfig={variableConfig}
-              config={mapConfig}
+              layoutMap={mapConfig}
             />
           ))}
 

@@ -29,12 +29,12 @@ import { DependentGroup } from "./DependentGroup";
 // Variable Card Component
 interface VariableCardProps {
   variableConfig: ImageVariable;
-  config: LayoutMap;
+  layoutMap: LayoutMap;
 }
 
 export const VariableCard: React.FC<VariableCardProps> = ({
   variableConfig,
-  config,
+  layoutMap,
 }) => {
   const { state, raiseError, effects } = useAppStore();
   const [isOpen, setIsOpen] = useState(false);
@@ -62,7 +62,7 @@ export const VariableCard: React.FC<VariableCardProps> = ({
       radius="lg"
       p="md"
     >
-      <Group justify="space-between">
+      <Group justify="space-between" onClick={() => setIsOpen(!isOpen)}>
         <Title order={5}>{variableImageConfig.name}</Title>
         <Group gap={"md"}>
           <ActionIcon
@@ -82,7 +82,7 @@ export const VariableCard: React.FC<VariableCardProps> = ({
             radius="xl"
             onClick={() => {
               effects.studio.layoutImageMapping.removeImageVariable({
-                mapId: config.id,
+                mapId: layoutMap.id,
                 imageVariableId: variableConfig.id,
               });
             }}
@@ -105,14 +105,19 @@ export const VariableCard: React.FC<VariableCardProps> = ({
               No dependents
             </Text>
           ) : (
-            variableConfig.dependentGroup.map((dependentGroup, groupIndex) => (
-              <DependentGroup
-                key={groupIndex}
-                dependentGroup={dependentGroup}
-                groupIndex={groupIndex}
-                variableConfig={variableConfig}
-              />
-            ))
+            variableConfig.dependentGroup.map((dependentGroup, groupIndex) => {
+              console.log(dependentGroup);
+
+              return (
+                <DependentGroup
+                  key={groupIndex}
+                  dependentGroup={dependentGroup}
+                  groupIndex={groupIndex}
+                  variableConfig={variableConfig}
+                  layoutMap={layoutMap}
+                />
+              );
+            })
           )}
 
           <Group mt="md" justify="flex-end">

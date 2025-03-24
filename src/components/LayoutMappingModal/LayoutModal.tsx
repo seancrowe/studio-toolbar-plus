@@ -3,7 +3,8 @@ import { useAppStore } from "../../modalStore";
 import {
   loadDocFromDoc,
   loadLayoutImageMapFromDoc,
-} from "../../studio/documentHandler";
+  saveLayoutImageMapToDoc,
+  saveLayoutMappingToAction, } from "../../studio/studioAdapter";
 import React, { useEffect, useState, useMemo } from "react";
 import styled from "styled-components";
 import {
@@ -13,6 +14,7 @@ import {
   Stack,
   Title,
   Modal,
+  Checkbox,
 } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import { AddMappingImageVariableModal } from "./AddMappingImageVariableModal";
@@ -28,7 +30,7 @@ type LayoutImageMappingModalProps = {
 export const LayoutImageMappingModal: React.FC<
   LayoutImageMappingModalProps
 > = ({ onExportCSV = () => console.log("Export CSV clicked") }) => {
-  const { state, effects: events, raiseError } = useAppStore();
+  const { state, effects: events, raiseError, enableToolbar } = useAppStore();
 
   // Filter image variables from documentState
   const imageVariables = useMemo(() => {
@@ -48,7 +50,6 @@ export const LayoutImageMappingModal: React.FC<
   // Load config when component mounts if it"s not loaded yet
   useEffect(() => {
     const loadConfig = async () => {
-      console.log("LOADING");
       if (!state.studio.isLayoutConfigLoaded) {
         const result = await loadLayoutImageMapFromDoc();
         console.log("result", result);
@@ -66,16 +67,35 @@ export const LayoutImageMappingModal: React.FC<
       }
     };
 
-    loadConfig();
-  }, []);
+    if (state.modal.isModalVisible) loadConfig();
+  }, [state.modal.isModalVisible]);
 
   if (!state.modal.isModalVisible) return null;
 
   const handleClose = () => {
     events.studio.document.unload();
     events.studio.layoutImageMapping.unload();
+    enableToolbar();
     events.modal.hideModal();
     // enableToolbar();
+  };
+
+  const handleSave = async () => {
+    // Save the layout image mapping to the document
+    const result = await saveLayoutImageMapToDoc(
+      state.studio.layoutImageMapping,
+    );
+    
+    const actionMap = await saveLayoutMappingToAction(
+      state.studio.layoutImageMapping,
+      state.studio.document,
+    );
+
+    if (result.isOk()) {
+      handleClose();
+    } else {
+      raiseError(result);
+    }
   };
 
   // Handle layout config changes
@@ -107,8 +127,11 @@ export const LayoutImageMappingModal: React.FC<
     return (
       <BottomBar>
         <Group justify="flex-end" gap="sm">
-          <Button onClick={onExportCSV}>Export CSV</Button>
-          <Button color="green" onClick={handleClose}>Save</Button>
+          <Checkbox defaultChecked label="Generate Action" />
+          {/* <Button onClick={onExportCSV}>Export CSV</Button> */}
+          <Button color="green" onClick={handleSave}>
+            Save
+          </Button>
           <Button onClick={handleClose}>Close</Button>
         </Group>
       </BottomBar>

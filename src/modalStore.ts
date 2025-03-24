@@ -80,6 +80,11 @@ type StudioEffects = {
       imageVariableId: string;
       dependents: DependentVar[];
     }) => void;
+    copyDependentGroup: (data: {
+      mapId: string;
+      imageVariableId: string;
+      groupIndex: number;
+    }) => void;
     removeDependentGroup: (data: {
       mapId: string;
       imageVariableId: string;
@@ -129,15 +134,22 @@ type EffectStore = {
   studio: StudioEffects;
 };
 
+type Alert = {
+  id: string;
+  message: string;
+};
+
 type AppStore = {
   state: StateStore;
   effects: EffectStore;
   errors: { error: Error; state: AppStore }[];
+  alerts: Alert[];
   raiseError: (error: Result<any, Error> | Error) => void;
   showToolbar: () => void;
   hideToolbar: () => void;
   enableToolbar: () => void;
   disableToolbar: () => void;
+  dismissAlert: (id: string) => void;
 };
 
 // Placeholder for the external save function
@@ -174,6 +186,7 @@ export const appStore = create<AppStore>()(
       isToolbarVisible: false,
       isToolbarEnabled: true,
     },
+    alerts: [],
     effects: {
       modal: {
         showModal: () =>
@@ -569,6 +582,63 @@ export const appStore = create<AppStore>()(
                   store,
                   new Error(
                     "For addDependentGroup layout config is not loaded",
+                  ),
+                );
+              }
+            }),
+          copyDependentGroup: ({ mapId, imageVariableId, groupIndex }) =>
+            set((store) => {
+              if (store.state.studio.isLayoutConfigLoaded) {
+                const targetLayoutMap =
+                  store.state.studio.layoutImageMapping.find(
+                    (map) => map.id == mapId,
+                  );
+                if (targetLayoutMap) {
+                  const imageVariable = targetLayoutMap.variables.find(
+                    (imgVar) => imgVar.id == imageVariableId,
+                  );
+                  if (imageVariable) {
+                    const dependentGroup =
+                      imageVariable.dependentGroup[groupIndex];
+
+                    if (dependentGroup == undefined) {
+                      raiseError(
+                        store,
+                        new Error(
+                          "For copyDependentGroup dependentGroup not found",
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Create a deep copy of the dependent group
+                    const newDependentGroup = JSON.parse(
+                      JSON.stringify(dependentGroup)
+                    );
+
+                    // Add the copied group to the image variable's dependentGroup array
+                    imageVariable.dependentGroup.push(newDependentGroup);
+                  } else {
+                    raiseError(
+                      store,
+                      new Error(
+                        "For copyDependentGroup imageVariable not found",
+                      ),
+                    );
+                  }
+                } else {
+                  raiseError(
+                    store,
+                    new Error(
+                      "For copyDependentGroup targetLayoutMap not found",
+                    ),
+                  );
+                }
+              } else {
+                raiseError(
+                  store,
+                  new Error(
+                    "For copyDependentGroup layout config is not loaded",
                   ),
                 );
               }
@@ -974,6 +1044,10 @@ export const appStore = create<AppStore>()(
         set((state) => raiseError(state, error as Error));
       }
     },
+    dismissAlert: (id) =>
+      set((state) => {
+        state.alerts = state.alerts.filter((alert) => alert.id !== id);
+      }),
   })),
 );
 
@@ -982,6 +1056,19 @@ appStore.subscribe((state, oldState) =>
 );
 
 function raiseError(store: WritableDraft<AppStore>, error: Error) {
+  // Generate a random ID for the alert
+  const alertId = Math.random().toString(36).substring(2, 15);
+
+  // Create an Alert object with the ID and error message
+  const alert: Alert = {
+    id: alertId,
+    message: error.message,
+  };
+
+  // Push the alert into the alerts array
+  store.alerts.push(alert);
+
+  // Keep the existing functionality
   store.errors.push({ error, state: store });
   console.error(error);
 }
