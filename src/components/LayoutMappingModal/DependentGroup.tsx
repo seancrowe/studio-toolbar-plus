@@ -42,6 +42,7 @@ export const DependentGroup: React.FC<DependentGroupProps> = ({
   // Function to open the modal for adding variables to an existing group
   const handleAddDependentToGroup = (groupIndex: number) => {
     effects.modal.dependentModal.setCurrentImageVariableId(variableConfig.id);
+    effects.modal.setCurrentSelectedMapId(layoutMap.id);
     effects.modal.dependentModal.setCurrentGroupIndex(groupIndex);
     effects.modal.dependentModal.setIsOpen(true);
   };

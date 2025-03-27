@@ -1,6 +1,5 @@
 import { Result } from "typescript-result";
 import type { LayoutMap } from "../types/layoutConfigTypes.ts";
-import { convertOldMapToLayoutConfig } from "./convertOldMapToLayoutConfig.ts";
 import {
   getPrivateData,
   setPrivateData,
@@ -262,52 +261,52 @@ export async function saveLayoutMappingToAction(
   // });
 }
 
-export async function convertOldMap(variableId: string) {
-  const studioResult = await getStudio();
-  if (!studioResult.isOk()) {
-    return studioResult;
-  }
-
-  const studio = studioResult.value;
-
-  try {
-    // Get the variable by ID
-    const variableResponse = await studio.variable.getById(variableId);
-    if (!variableResponse || !variableResponse.data) {
-      return Result.error(
-        new Error(`Variable with ID ${variableId} not found`),
-      );
-    }
-
-    // The variable value is directly in the data property
-    const variableValue = variableResponse.data;
-
-    // Parse the JSON value
-    const jsonResult = await Result.try(() => JSON.parse(variableValue));
-    if (!jsonResult.isOk()) {
-      return Result.error(
-        new Error(`Failed to parse JSON: ${jsonResult.error?.message}`),
-      );
-    }
-
-    // Convert the old map to the new layout config format
-    const layoutMaps = convertOldMapToLayoutConfig(
-      jsonResult.value as Record<string, any>,
-    );
-
-    // Save the layout maps to the document
-    //return await saveLayoutImageMapToDoc(layoutMaps);
-    const idResult = await createVariable({
-      studio,
-      variableType: VariableType.shortText,
-      name: "JSON_COVERTED",
-    });
-    idResult.onSuccess((id) =>
-      setVariableValue({ studio, id, value: JSON.stringify(layoutMaps) }),
-    );
-  } catch (error) {
-    return Result.error(
-      error instanceof Error ? error : new Error(String(error)),
-    );
-  }
-}
+// export async function convertOldMap(variableId: string) {
+//   const studioResult = await getStudio();
+//   if (!studioResult.isOk()) {
+//     return studioResult;
+//   }
+//
+//   const studio = studioResult.value;
+//
+//   try {
+//     // Get the variable by ID
+//     const variableResponse = await studio.variable.getById(variableId);
+//     if (!variableResponse || !variableResponse.data) {
+//       return Result.error(
+//         new Error(`Variable with ID ${variableId} not found`),
+//       );
+//     }
+//
+//     // The variable value is directly in the data property
+//     const variableValue = variableResponse.data;
+//
+//     // Parse the JSON value
+//     const jsonResult = await Result.try(() => JSON.parse(variableValue));
+//     if (!jsonResult.isOk()) {
+//       return Result.error(
+//         new Error(`Failed to parse JSON: ${jsonResult.error?.message}`),
+//       );
+//     }
+//
+//     // Convert the old map to the new layout config format
+//     const layoutMaps = convertOldMapToLayoutConfig(
+//       jsonResult.value as Record<string, any>,
+//     );
+//
+//     // Save the layout maps to the document
+//     //return await saveLayoutImageMapToDoc(layoutMaps);
+//     const idResult = await createVariable({
+//       studio,
+//       variableType: VariableType.shortText,
+//       name: "JSON_COVERTED",
+//     });
+//     idResult.onSuccess((id) =>
+//       setVariableValue({ studio, id, value: JSON.stringify(layoutMaps) }),
+//     );
+//   } catch (error) {
+//     return Result.error(
+//       error instanceof Error ? error : new Error(String(error)),
+//     );
+//   }
+// }

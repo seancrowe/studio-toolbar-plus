@@ -21,8 +21,10 @@ export const AddDependentModal: React.FC = () => {
       state.modal.dependentModal.currentSelectedVariables;
     const imageVariableId = state.modal.dependentModal.currentImageVariableId;
     const mapId = state.modal.currentSelectedMapId;
-    if (!mapId) return;
-    if (!imageVariableId) return;
+    if (!mapId ||!imageVariableId) {
+      raiseError(new Error(`One of these are null mapId:${mapId} or imageVariableId:${imageVariableId}`))
+      return
+    }
 
     const currentGroupIndex = state.modal.dependentModal.currentGroupIndex;
 

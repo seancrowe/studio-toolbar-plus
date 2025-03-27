@@ -19210,8 +19210,8 @@ var init_defaultAttributes = __esm(() => {
 });
 
 // node_modules/@tabler/icons-react/dist/esm/createReactComponent.mjs
-var import_react221, createReactComponent = (type, iconName, iconNamePascal, iconNode) => {
-  const Component = import_react221.forwardRef(({ color = "currentColor", size: size4 = 24, stroke = 2, title, className, children, ...rest }, ref) => import_react221.createElement("svg", {
+var import_react224, createReactComponent = (type, iconName, iconNamePascal, iconNode) => {
+  const Component = import_react224.forwardRef(({ color = "currentColor", size: size4 = 24, stroke = 2, title, className, children, ...rest }, ref) => import_react224.createElement("svg", {
     ref,
     ...defaultAttributes[type],
     width: size4,
@@ -19225,15 +19225,15 @@ var import_react221, createReactComponent = (type, iconName, iconNamePascal, ico
     },
     ...rest
   }, [
-    title && import_react221.createElement("title", { key: "svg-title" }, title),
-    ...iconNode.map(([tag, attrs]) => import_react221.createElement(tag, attrs)),
+    title && import_react224.createElement("title", { key: "svg-title" }, title),
+    ...iconNode.map(([tag, attrs]) => import_react224.createElement(tag, attrs)),
     ...Array.isArray(children) ? children : [children]
   ]));
   Component.displayName = `${iconNamePascal}`;
   return Component;
 };
 var init_createReactComponent = __esm(() => {
-  import_react221 = __toESM(require_react(), 1);
+  import_react224 = __toESM(require_react(), 1);
   init_defaultAttributes();
 });
 
@@ -19277,6 +19277,13 @@ var IconDownload;
 var init_IconDownload = __esm(() => {
   init_createReactComponent();
   IconDownload = createReactComponent("outline", "download", "IconDownload", [["path", { d: "M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2", key: "svg-0" }], ["path", { d: "M7 11l5 5l5 -5", key: "svg-1" }], ["path", { d: "M12 4l0 12", key: "svg-2" }]]);
+});
+
+// node_modules/@tabler/icons-react/dist/esm/icons/IconExternalLink.mjs
+var IconExternalLink;
+var init_IconExternalLink = __esm(() => {
+  init_createReactComponent();
+  IconExternalLink = createReactComponent("outline", "external-link", "IconExternalLink", [["path", { d: "M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6", key: "svg-0" }], ["path", { d: "M11 13l9 -9", key: "svg-1" }], ["path", { d: "M15 4h5v5", key: "svg-2" }]]);
 });
 
 // node_modules/@tabler/icons-react/dist/esm/icons/IconGripVertical.mjs
@@ -19769,7 +19776,7 @@ var require_jsx_dev_runtime = __commonJS((exports, module) => {
 });
 
 // src/index.tsx
-var import_react235 = __toESM(require_react(), 1);
+var import_react237 = __toESM(require_react(), 1);
 var import_client = __toESM(require_client(), 1);
 
 // node_modules/zustand/esm/vanilla.mjs
@@ -21300,50 +21307,6 @@ var Result = class _Result {
   }
 };
 
-// src/studio/convertOldMapToLayoutConfig.ts
-function convertOldMapToLayoutConfig(oldMap) {
-  const layoutMaps = [];
-  Object.entries(oldMap).forEach(([layoutName, layoutContent]) => {
-    Object.entries(layoutContent).forEach(([componentName, componentContent]) => {
-      Object.entries(componentContent).forEach(([dependentKey, dependentValues]) => {
-        const layoutMap = {
-          id: `${layoutName}-${componentName}`,
-          layoutIds: [layoutName],
-          variables: []
-        };
-        const imageVariable = {
-          id: componentName,
-          dependentGroup: []
-        };
-        const dependentNames = dependentKey.split("|");
-        Object.entries(dependentValues).forEach(([valueKey, valueContent]) => {
-          const oldValuePairs = valueKey.split("|");
-          const newValues = oldValuePairs.map((pair) => {
-            const [, value] = pair.split(":");
-            return value;
-          });
-          const newValueKey = newValues.join("|");
-          const dependents = dependentNames.map((name, index) => {
-            const [, value] = oldValuePairs[index].split(":");
-            return {
-              variableId: name,
-              values: [value]
-            };
-          });
-          const dependentGroup = {
-            dependents,
-            variableValue: [valueContent.imageName || ""]
-          };
-          imageVariable.dependentGroup.push(dependentGroup);
-        });
-        layoutMap.variables.push(imageVariable);
-        layoutMaps.push(layoutMap);
-      });
-    });
-  });
-  return layoutMaps;
-}
-
 // src/studio/utils.ts
 async function handleStudioFunc(studioFunction, ...functionArgs) {
   const result = await Result.wrap(studioFunction)(...functionArgs);
@@ -21384,26 +21347,6 @@ async function getAllLayouts(studio2) {
 // src/studio/variableHandler.ts
 async function getAllVariables(studio2) {
   return handleStudioFunc(studio2.next.variable.getAll);
-}
-async function setVariableValue2({
-  studio: studio2,
-  id,
-  value
-}) {
-  return handleStudioFunc(studio2.variable.setValue, id, value);
-}
-async function createVariable({
-  studio: studio2,
-  variableType,
-  name
-}) {
-  const createResult = await handleStudioFunc(studio2.variable.create, "", variableType);
-  return createResult.map(async (id) => {
-    const result = await handleStudioFunc(studio2.variable.rename, id, name);
-    if (result.isOk())
-      return id;
-    return Result.error(result.value);
-  });
 }
 
 // src/studio/studioAdapter.ts
@@ -21787,38 +21730,11 @@ console.log(imageSelectionScript(true))`;
   });
   return updateResult;
 }
-async function convertOldMap(variableId) {
-  const studioResult = await getStudio();
-  if (!studioResult.isOk()) {
-    return studioResult;
-  }
-  const studio2 = studioResult.value;
-  try {
-    const variableResponse = await studio2.variable.getById(variableId);
-    if (!variableResponse || !variableResponse.data) {
-      return Result.error(new Error(`Variable with ID ${variableId} not found`));
-    }
-    const variableValue = variableResponse.data;
-    const jsonResult = await Result.try(() => JSON.parse(variableValue));
-    if (!jsonResult.isOk()) {
-      return Result.error(new Error(`Failed to parse JSON: ${jsonResult.error?.message}`));
-    }
-    const layoutMaps = convertOldMapToLayoutConfig(jsonResult.value);
-    const idResult = await createVariable({
-      studio: studio2,
-      variableType: import_studio_sdk.VariableType.shortText,
-      name: "JSON_COVERTED"
-    });
-    idResult.onSuccess((id) => setVariableValue2({ studio: studio2, id, value: JSON.stringify(layoutMaps) }));
-  } catch (error) {
-    return Result.error(error instanceof Error ? error : new Error(String(error)));
-  }
-}
 
 // src/components/LayoutMappingModal/LayoutModal.tsx
-var import_react231 = __toESM(require_react(), 1);
+var import_react234 = __toESM(require_react(), 1);
 
-// node_modules/styled-components/node_modules/tslib/tslib.es6.mjs
+// node_modules/tslib/tslib.es6.mjs
 var __assign = function() {
   __assign = Object.assign || function __assign(t) {
     for (var s, i = 1, n = arguments.length;i < n; i++) {
@@ -21831,6 +21747,18 @@ var __assign = function() {
   };
   return __assign.apply(this, arguments);
 };
+function __rest(s, e) {
+  var t = {};
+  for (var p in s)
+    if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+      t[p] = s[p];
+  if (s != null && typeof Object.getOwnPropertySymbols === "function")
+    for (var i = 0, p = Object.getOwnPropertySymbols(s);i < p.length; i++) {
+      if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+        t[p[i]] = s[p[i]];
+    }
+  return t;
+}
 function __spreadArray(to, from, pack) {
   if (pack || arguments.length === 2)
     for (var i = 0, l = from.length, ar;i < l; i++) {
@@ -22462,7 +22390,7 @@ var unitlessKeys = {
 var f = typeof process != "undefined" && process.env !== undefined && (process.env.REACT_APP_SC_ATTR || process.env.SC_ATTR) || "data-styled";
 var m = "active";
 var y = "data-styled-version";
-var v = "6.1.16";
+var v = "6.1.15";
 var g = `/*!sc*/
 `;
 var S = typeof window != "undefined" && "HTMLElement" in window;
@@ -23183,43 +23111,6 @@ typeof window != "undefined" && (window[St] || (window[St] = 0), window[St] === 
 
 See https://s-c.sh/2BAXzed for more info.`), window[St] += 1);
 
-// node_modules/react-remove-scroll/node_modules/tslib/tslib.es6.mjs
-var __assign2 = function() {
-  __assign2 = Object.assign || function __assign(t) {
-    for (var s2, i2 = 1, n = arguments.length;i2 < n; i2++) {
-      s2 = arguments[i2];
-      for (var p2 in s2)
-        if (Object.prototype.hasOwnProperty.call(s2, p2))
-          t[p2] = s2[p2];
-    }
-    return t;
-  };
-  return __assign2.apply(this, arguments);
-};
-function __rest(s2, e) {
-  var t = {};
-  for (var p2 in s2)
-    if (Object.prototype.hasOwnProperty.call(s2, p2) && e.indexOf(p2) < 0)
-      t[p2] = s2[p2];
-  if (s2 != null && typeof Object.getOwnPropertySymbols === "function")
-    for (var i2 = 0, p2 = Object.getOwnPropertySymbols(s2);i2 < p2.length; i2++) {
-      if (e.indexOf(p2[i2]) < 0 && Object.prototype.propertyIsEnumerable.call(s2, p2[i2]))
-        t[p2[i2]] = s2[p2[i2]];
-    }
-  return t;
-}
-function __spreadArray2(to, from2, pack) {
-  if (pack || arguments.length === 2)
-    for (var i2 = 0, l2 = from2.length, ar;i2 < l2; i2++) {
-      if (ar || !(i2 in from2)) {
-        if (!ar)
-          ar = Array.prototype.slice.call(from2, 0, i2);
-        ar[i2] = from2[i2];
-      }
-    }
-  return to.concat(ar || Array.prototype.slice.call(from2));
-}
-
 // node_modules/react-remove-scroll/dist/es2015/Combination.js
 var React10 = __toESM(require_react(), 1);
 
@@ -23298,32 +23189,6 @@ function useMergeRefs(refs, defaultValue) {
   }, [refs]);
   return callbackRef;
 }
-// node_modules/use-sidecar/node_modules/tslib/tslib.es6.mjs
-var __assign3 = function() {
-  __assign3 = Object.assign || function __assign(t) {
-    for (var s2, i2 = 1, n = arguments.length;i2 < n; i2++) {
-      s2 = arguments[i2];
-      for (var p2 in s2)
-        if (Object.prototype.hasOwnProperty.call(s2, p2))
-          t[p2] = s2[p2];
-    }
-    return t;
-  };
-  return __assign3.apply(this, arguments);
-};
-function __rest2(s2, e) {
-  var t = {};
-  for (var p2 in s2)
-    if (Object.prototype.hasOwnProperty.call(s2, p2) && e.indexOf(p2) < 0)
-      t[p2] = s2[p2];
-  if (s2 != null && typeof Object.getOwnPropertySymbols === "function")
-    for (var i2 = 0, p2 = Object.getOwnPropertySymbols(s2);i2 < p2.length; i2++) {
-      if (e.indexOf(p2[i2]) < 0 && Object.prototype.propertyIsEnumerable.call(s2, p2[i2]))
-        t[p2[i2]] = s2[p2[i2]];
-    }
-  return t;
-}
-
 // node_modules/use-sidecar/dist/es2015/hoc.js
 var React3 = __toESM(require_react(), 1);
 
@@ -23412,7 +23277,7 @@ function createSidecarMedium(options) {
     options = {};
   }
   var medium = innerCreateMedium(null);
-  medium.options = __assign3({ async: true, ssr: false }, options);
+  medium.options = __assign({ async: true, ssr: false }, options);
   return medium;
 }
 // node_modules/use-sidecar/dist/es2015/renderProp.js
@@ -23421,7 +23286,7 @@ var import_react5 = __toESM(require_react(), 1);
 // node_modules/use-sidecar/dist/es2015/exports.js
 var React5 = __toESM(require_react(), 1);
 var SideCar = function(_a) {
-  var sideCar = _a.sideCar, rest = __rest2(_a, ["sideCar"]);
+  var sideCar = _a.sideCar, rest = __rest(_a, ["sideCar"]);
   if (!sideCar) {
     throw new Error("Sidecar: please provide `sideCar` property to import the right car");
   }
@@ -23429,7 +23294,7 @@ var SideCar = function(_a) {
   if (!Target) {
     throw new Error("Sidecar medium not found");
   }
-  return React5.createElement(Target, __assign3({}, rest));
+  return React5.createElement(Target, __assign({}, rest));
 };
 SideCar.isSideCarExport = true;
 function exportSidecar(medium, exported) {
@@ -23453,8 +23318,8 @@ var RemoveScroll = React6.forwardRef(function(props, parentRef) {
   var { forwardProps, children, className, removeScrollBar, enabled, shards, sideCar, noIsolation, inert, allowPinchZoom, as: _b } = props, Container = _b === undefined ? "div" : _b, gapMode = props.gapMode, rest = __rest(props, ["forwardProps", "children", "className", "removeScrollBar", "enabled", "shards", "sideCar", "noIsolation", "inert", "allowPinchZoom", "as", "gapMode"]);
   var SideCar2 = sideCar;
   var containerRef = useMergeRefs([ref, parentRef]);
-  var containerProps = __assign2(__assign2({}, rest), callbacks);
-  return React6.createElement(React6.Fragment, null, enabled && React6.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }), forwardProps ? React6.cloneElement(React6.Children.only(children), __assign2(__assign2({}, containerProps), { ref: containerRef })) : React6.createElement(Container, __assign2({}, containerProps, { className, ref: containerRef }), children));
+  var containerProps = __assign(__assign({}, rest), callbacks);
+  return React6.createElement(React6.Fragment, null, enabled && React6.createElement(SideCar2, { sideCar: effectCar, removeScrollBar, shards, noIsolation, inert, setCallbacks, allowPinchZoom: !!allowPinchZoom, lockRef: ref, gapMode }), forwardProps ? React6.cloneElement(React6.Children.only(children), __assign(__assign({}, containerProps), { ref: containerRef })) : React6.createElement(Container, __assign({}, containerProps, { className, ref: containerRef }), children));
 });
 RemoveScroll.defaultProps = {
   enabled: true,
@@ -23813,7 +23678,7 @@ function RemoveScrollSideCar(props) {
   React9.useEffect(function() {
     if (props.inert) {
       document.body.classList.add("block-interactivity-".concat(id));
-      var allow_1 = __spreadArray2([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
+      var allow_1 = __spreadArray([props.lockRef.current], (props.shards || []).map(extractRef), true).filter(Boolean);
       allow_1.forEach(function(el) {
         return el.classList.add("allow-interactivity-".concat(id));
       });
@@ -23947,7 +23812,7 @@ var sidecar_default = exportSidecar(effectCar, RemoveScrollSideCar);
 
 // node_modules/react-remove-scroll/dist/es2015/Combination.js
 var ReactRemoveScroll = React10.forwardRef(function(props, ref) {
-  return React10.createElement(RemoveScroll, __assign2({}, props, { ref, sideCar: sidecar_default }));
+  return React10.createElement(RemoveScroll, __assign({}, props, { ref, sideCar: sidecar_default }));
 });
 ReactRemoveScroll.classNames = RemoveScroll.classNames;
 var Combination_default = ReactRemoveScroll;
@@ -36566,44 +36431,141 @@ var Grid = factory((_props, ref) => {
 Grid.classes = classes24;
 Grid.displayName = "@mantine/core/Grid";
 Grid.Col = GridCol;
-// node_modules/@mantine/core/esm/components/Menu/Menu.mjs
-var import_jsx_runtime147 = __toESM(require_jsx_runtime(), 1);
-var import_react184 = __toESM(require_react(), 1);
+// node_modules/@mantine/core/esm/components/List/List.mjs
+var import_jsx_runtime143 = __toESM(require_jsx_runtime(), 1);
+var import_react180 = __toESM(require_react(), 1);
 
-// node_modules/@mantine/core/esm/components/Menu/Menu.context.mjs
+// node_modules/@mantine/core/esm/components/List/List.context.mjs
 var import_react178 = __toESM(require_react(), 1);
 var import_jsx_runtime141 = __toESM(require_jsx_runtime(), 1);
+"use client";
+var [ListProvider, useListContext] = createSafeContext("List component was not found in tree");
+
+// node_modules/@mantine/core/esm/components/List/ListItem/ListItem.mjs
+var import_jsx_runtime142 = __toESM(require_jsx_runtime(), 1);
+var import_react179 = __toESM(require_react(), 1);
+
+// node_modules/@mantine/core/esm/components/List/List.module.css.mjs
+"use client";
+var classes25 = { root: "m_abbac491", item: "m_abb6bec2", itemWrapper: "m_75cd9f71", itemIcon: "m_60f83e5b" };
+
+// node_modules/@mantine/core/esm/components/List/ListItem/ListItem.mjs
+"use client";
+var defaultProps60 = {};
+var ListItem = factory((_props, ref) => {
+  const props = useProps("ListItem", defaultProps60, _props);
+  const { classNames, className, style, styles, vars, icon, children, mod, ...others } = props;
+  const ctx = useListContext();
+  const _icon = icon || ctx.icon;
+  const stylesApiProps = { classNames, styles };
+  return /* @__PURE__ */ import_jsx_runtime142.jsx(Box, {
+    ...ctx.getStyles("item", { ...stylesApiProps, className, style }),
+    component: "li",
+    mod: [{ "with-icon": !!_icon, centered: ctx.center }, mod],
+    ref,
+    ...others,
+    children: /* @__PURE__ */ import_jsx_runtime142.jsxs("div", { ...ctx.getStyles("itemWrapper", stylesApiProps), children: [
+      _icon && /* @__PURE__ */ import_jsx_runtime142.jsx("span", { ...ctx.getStyles("itemIcon", stylesApiProps), children: _icon }),
+      /* @__PURE__ */ import_jsx_runtime142.jsx("span", { ...ctx.getStyles("itemLabel", stylesApiProps), children })
+    ] })
+  });
+});
+ListItem.classes = classes25;
+ListItem.displayName = "@mantine/core/ListItem";
+
+// node_modules/@mantine/core/esm/components/List/List.mjs
+"use client";
+var defaultProps61 = {
+  type: "unordered"
+};
+var varsResolver30 = createVarsResolver((_2, { size: size4, spacing }) => ({
+  root: {
+    "--list-fz": getFontSize(size4),
+    "--list-lh": getLineHeight(size4),
+    "--list-spacing": getSpacing(spacing)
+  }
+}));
+var List = factory((_props, ref) => {
+  const props = useProps("List", defaultProps61, _props);
+  const {
+    classNames,
+    className,
+    style,
+    styles,
+    unstyled,
+    vars,
+    children,
+    type,
+    withPadding,
+    icon,
+    spacing,
+    center,
+    listStyleType,
+    mod,
+    ...others
+  } = props;
+  const getStyles2 = useStyles({
+    name: "List",
+    classes: classes25,
+    props,
+    className,
+    style,
+    classNames,
+    styles,
+    unstyled,
+    vars,
+    varsResolver: varsResolver30
+  });
+  return /* @__PURE__ */ import_jsx_runtime143.jsx(ListProvider, { value: { center, icon, getStyles: getStyles2 }, children: /* @__PURE__ */ import_jsx_runtime143.jsx(Box, {
+    ...getStyles2("root", { style: { listStyleType } }),
+    component: type === "unordered" ? "ul" : "ol",
+    mod: [{ "with-padding": withPadding }, mod],
+    ref,
+    ...others,
+    children
+  }) });
+});
+List.classes = classes25;
+List.displayName = "@mantine/core/List";
+List.Item = ListItem;
+// node_modules/@mantine/core/esm/components/Menu/Menu.mjs
+var import_jsx_runtime150 = __toESM(require_jsx_runtime(), 1);
+var import_react187 = __toESM(require_react(), 1);
+
+// node_modules/@mantine/core/esm/components/Menu/Menu.context.mjs
+var import_react181 = __toESM(require_react(), 1);
+var import_jsx_runtime144 = __toESM(require_jsx_runtime(), 1);
 "use client";
 var [MenuContextProvider, useMenuContext] = createSafeContext("Menu component was not found in the tree");
 
 // node_modules/@mantine/core/esm/components/Menu/MenuDivider/MenuDivider.mjs
-var import_jsx_runtime142 = __toESM(require_jsx_runtime(), 1);
-var import_react179 = __toESM(require_react(), 1);
+var import_jsx_runtime145 = __toESM(require_jsx_runtime(), 1);
+var import_react182 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Menu/Menu.module.css.mjs
 "use client";
-var classes25 = { dropdown: "m_dc9b7c9f", label: "m_9bfac126", divider: "m_efdf90cb", item: "m_99ac2aa1", itemLabel: "m_5476e0d3", itemSection: "m_8b75e504" };
+var classes26 = { dropdown: "m_dc9b7c9f", label: "m_9bfac126", divider: "m_efdf90cb", item: "m_99ac2aa1", itemLabel: "m_5476e0d3", itemSection: "m_8b75e504" };
 
 // node_modules/@mantine/core/esm/components/Menu/MenuDivider/MenuDivider.mjs
 "use client";
-var defaultProps60 = {};
+var defaultProps62 = {};
 var MenuDivider = factory((props, ref) => {
-  const { classNames, className, style, styles, vars, ...others } = useProps("MenuDivider", defaultProps60, props);
+  const { classNames, className, style, styles, vars, ...others } = useProps("MenuDivider", defaultProps62, props);
   const ctx = useMenuContext();
-  return /* @__PURE__ */ import_jsx_runtime142.jsx(Box, {
+  return /* @__PURE__ */ import_jsx_runtime145.jsx(Box, {
     ref,
     ...ctx.getStyles("divider", { className, style, styles, classNames }),
     ...others
   });
 });
-MenuDivider.classes = classes25;
+MenuDivider.classes = classes26;
 MenuDivider.displayName = "@mantine/core/MenuDivider";
 
 // node_modules/@mantine/core/esm/components/Menu/MenuDropdown/MenuDropdown.mjs
-var import_jsx_runtime143 = __toESM(require_jsx_runtime(), 1);
-var import_react180 = __toESM(require_react(), 1);
+var import_jsx_runtime146 = __toESM(require_jsx_runtime(), 1);
+var import_react183 = __toESM(require_react(), 1);
 "use client";
-var defaultProps61 = {};
+var defaultProps63 = {};
 var MenuDropdown = factory((props, ref) => {
   const {
     classNames,
@@ -36616,8 +36578,8 @@ var MenuDropdown = factory((props, ref) => {
     onKeyDown,
     children,
     ...others
-  } = useProps("MenuDropdown", defaultProps61, props);
-  const wrapperRef = import_react180.useRef(null);
+  } = useProps("MenuDropdown", defaultProps63, props);
+  const wrapperRef = import_react183.useRef(null);
   const ctx = useMenuContext();
   const handleKeyDown = createEventHandler(onKeyDown, (event) => {
     if (event.key === "ArrowUp" || event.key === "ArrowDown") {
@@ -36627,7 +36589,7 @@ var MenuDropdown = factory((props, ref) => {
   });
   const handleMouseEnter = createEventHandler(onMouseEnter, () => (ctx.trigger === "hover" || ctx.trigger === "click-hover") && ctx.openDropdown());
   const handleMouseLeave = createEventHandler(onMouseLeave, () => (ctx.trigger === "hover" || ctx.trigger === "click-hover") && ctx.closeDropdown());
-  return /* @__PURE__ */ import_jsx_runtime143.jsxs(Popover.Dropdown, {
+  return /* @__PURE__ */ import_jsx_runtime146.jsxs(Popover.Dropdown, {
     ...others,
     onMouseEnter: handleMouseEnter,
     onMouseLeave: handleMouseLeave,
@@ -36645,19 +36607,19 @@ var MenuDropdown = factory((props, ref) => {
     "data-menu-dropdown": true,
     onKeyDown: handleKeyDown,
     children: [
-      ctx.withInitialFocusPlaceholder && /* @__PURE__ */ import_jsx_runtime143.jsx("div", { tabIndex: -1, "data-autofocus": true, "data-mantine-stop-propagation": true, style: { outline: 0 } }),
+      ctx.withInitialFocusPlaceholder && /* @__PURE__ */ import_jsx_runtime146.jsx("div", { tabIndex: -1, "data-autofocus": true, "data-mantine-stop-propagation": true, style: { outline: 0 } }),
       children
     ]
   });
 });
-MenuDropdown.classes = classes25;
+MenuDropdown.classes = classes26;
 MenuDropdown.displayName = "@mantine/core/MenuDropdown";
 
 // node_modules/@mantine/core/esm/components/Menu/MenuItem/MenuItem.mjs
-var import_jsx_runtime144 = __toESM(require_jsx_runtime(), 1);
-var import_react181 = __toESM(require_react(), 1);
+var import_jsx_runtime147 = __toESM(require_jsx_runtime(), 1);
+var import_react184 = __toESM(require_react(), 1);
 "use client";
-var defaultProps62 = {};
+var defaultProps64 = {};
 var MenuItem = polymorphicFactory((props, ref) => {
   const {
     classNames,
@@ -36673,11 +36635,11 @@ var MenuItem = polymorphicFactory((props, ref) => {
     disabled,
     "data-disabled": dataDisabled,
     ...others
-  } = useProps("MenuItem", defaultProps62, props);
+  } = useProps("MenuItem", defaultProps64, props);
   const ctx = useMenuContext();
   const theme = useMantineTheme();
   const { dir } = useDirection();
-  const itemRef = import_react181.useRef(null);
+  const itemRef = import_react184.useRef(null);
   const itemIndex = ctx.getItemIndex(itemRef.current);
   const _others = others;
   const handleMouseLeave = createEventHandler(_others.onMouseLeave, () => ctx.setHovered(-1));
@@ -36695,7 +36657,7 @@ var MenuItem = polymorphicFactory((props, ref) => {
   const handleFocus = createEventHandler(_others.onFocus, () => ctx.setHovered(ctx.getItemIndex(itemRef.current)));
   const colors = color ? theme.variantColorResolver({ color, theme, variant: "light" }) : undefined;
   const parsedThemeColor = color ? parseThemeColor({ color, theme }) : null;
-  return /* @__PURE__ */ import_jsx_runtime144.jsxs(UnstyledButton, {
+  return /* @__PURE__ */ import_jsx_runtime147.jsxs(UnstyledButton, {
     ...others,
     unstyled: ctx.unstyled,
     tabIndex: ctx.menuItemTabIndex,
@@ -36725,41 +36687,41 @@ var MenuItem = polymorphicFactory((props, ref) => {
       "--menu-item-hover": colors?.hover
     },
     children: [
-      leftSection && /* @__PURE__ */ import_jsx_runtime144.jsx("div", { ...ctx.getStyles("itemSection", { styles, classNames }), "data-position": "left", children: leftSection }),
-      children && /* @__PURE__ */ import_jsx_runtime144.jsx("div", { ...ctx.getStyles("itemLabel", { styles, classNames }), children }),
-      rightSection && /* @__PURE__ */ import_jsx_runtime144.jsx("div", { ...ctx.getStyles("itemSection", { styles, classNames }), "data-position": "right", children: rightSection })
+      leftSection && /* @__PURE__ */ import_jsx_runtime147.jsx("div", { ...ctx.getStyles("itemSection", { styles, classNames }), "data-position": "left", children: leftSection }),
+      children && /* @__PURE__ */ import_jsx_runtime147.jsx("div", { ...ctx.getStyles("itemLabel", { styles, classNames }), children }),
+      rightSection && /* @__PURE__ */ import_jsx_runtime147.jsx("div", { ...ctx.getStyles("itemSection", { styles, classNames }), "data-position": "right", children: rightSection })
     ]
   });
 });
-MenuItem.classes = classes25;
+MenuItem.classes = classes26;
 MenuItem.displayName = "@mantine/core/MenuItem";
 
 // node_modules/@mantine/core/esm/components/Menu/MenuLabel/MenuLabel.mjs
-var import_jsx_runtime145 = __toESM(require_jsx_runtime(), 1);
-var import_react182 = __toESM(require_react(), 1);
+var import_jsx_runtime148 = __toESM(require_jsx_runtime(), 1);
+var import_react185 = __toESM(require_react(), 1);
 "use client";
-var defaultProps63 = {};
+var defaultProps65 = {};
 var MenuLabel = factory((props, ref) => {
-  const { classNames, className, style, styles, vars, ...others } = useProps("MenuLabel", defaultProps63, props);
+  const { classNames, className, style, styles, vars, ...others } = useProps("MenuLabel", defaultProps65, props);
   const ctx = useMenuContext();
-  return /* @__PURE__ */ import_jsx_runtime145.jsx(Box, {
+  return /* @__PURE__ */ import_jsx_runtime148.jsx(Box, {
     ref,
     ...ctx.getStyles("label", { className, style, styles, classNames }),
     ...others
   });
 });
-MenuLabel.classes = classes25;
+MenuLabel.classes = classes26;
 MenuLabel.displayName = "@mantine/core/MenuLabel";
 
 // node_modules/@mantine/core/esm/components/Menu/MenuTarget/MenuTarget.mjs
-var import_jsx_runtime146 = __toESM(require_jsx_runtime(), 1);
-var import_react183 = __toESM(require_react(), 1);
+var import_jsx_runtime149 = __toESM(require_jsx_runtime(), 1);
+var import_react186 = __toESM(require_react(), 1);
 "use client";
-var defaultProps64 = {
+var defaultProps66 = {
   refProp: "ref"
 };
-var MenuTarget = import_react183.forwardRef((props, ref) => {
-  const { children, refProp, ...others } = useProps("MenuTarget", defaultProps64, props);
+var MenuTarget = import_react186.forwardRef((props, ref) => {
+  const { children, refProp, ...others } = useProps("MenuTarget", defaultProps66, props);
   if (!isElement(children)) {
     throw new Error("Menu.Target component children should be an element or a component that accepts ref. Fragments, strings, numbers and other primitive values are not supported");
   }
@@ -36783,7 +36745,7 @@ var MenuTarget = import_react183.forwardRef((props, ref) => {
       ctx.closeDropdown();
     }
   });
-  return /* @__PURE__ */ import_jsx_runtime146.jsx(Popover.Target, { refProp, popupType: "menu", ref, ...others, children: import_react183.cloneElement(children, {
+  return /* @__PURE__ */ import_jsx_runtime149.jsx(Popover.Target, { refProp, popupType: "menu", ref, ...others, children: import_react186.cloneElement(children, {
     onClick,
     onMouseEnter,
     onMouseLeave,
@@ -36794,7 +36756,7 @@ MenuTarget.displayName = "@mantine/core/MenuTarget";
 
 // node_modules/@mantine/core/esm/components/Menu/Menu.mjs
 "use client";
-var defaultProps65 = {
+var defaultProps67 = {
   trapFocus: true,
   closeOnItemClick: true,
   withInitialFocusPlaceholder: true,
@@ -36806,7 +36768,7 @@ var defaultProps65 = {
   menuItemTabIndex: -1
 };
 function Menu(_props) {
-  const props = useProps("Menu", defaultProps65, _props);
+  const props = useProps("Menu", defaultProps67, _props);
   const {
     children,
     onOpen,
@@ -36833,7 +36795,7 @@ function Menu(_props) {
   } = props;
   const getStyles2 = useStyles({
     name: "Menu",
-    classes: classes25,
+    classes: classes26,
     props,
     classNames,
     styles,
@@ -36846,7 +36808,7 @@ function Menu(_props) {
     finalValue: false,
     onChange
   });
-  const [openedViaClick, setOpenedViaClick] = import_react184.useState(false);
+  const [openedViaClick, setOpenedViaClick] = import_react187.useState(false);
   const close = () => {
     setOpened(false);
     setOpenedViaClick(false);
@@ -36869,7 +36831,7 @@ function Menu(_props) {
   useDidUpdate(() => {
     resetHovered();
   }, [_opened]);
-  return /* @__PURE__ */ import_jsx_runtime147.jsx(MenuContextProvider, {
+  return /* @__PURE__ */ import_jsx_runtime150.jsx(MenuContextProvider, {
     value: {
       getStyles: getStyles2,
       opened: _opened,
@@ -36889,7 +36851,7 @@ function Menu(_props) {
       menuItemTabIndex,
       withInitialFocusPlaceholder
     },
-    children: /* @__PURE__ */ import_jsx_runtime147.jsx(Popover, {
+    children: /* @__PURE__ */ import_jsx_runtime150.jsx(Popover, {
       ...others,
       opened: _opened,
       onChange: toggleDropdown,
@@ -36908,7 +36870,7 @@ function Menu(_props) {
 }
 Menu.extend = (input) => input;
 Menu.withProps = getWithProps(Menu);
-Menu.classes = classes25;
+Menu.classes = classes26;
 Menu.displayName = "@mantine/core/Menu";
 Menu.Item = MenuItem;
 Menu.Label = MenuLabel;
@@ -36916,68 +36878,68 @@ Menu.Dropdown = MenuDropdown;
 Menu.Target = MenuTarget;
 Menu.Divider = MenuDivider;
 // node_modules/@mantine/core/esm/components/Modal/Modal.mjs
-var import_jsx_runtime157 = __toESM(require_jsx_runtime(), 1);
-var import_react194 = __toESM(require_react(), 1);
+var import_jsx_runtime160 = __toESM(require_jsx_runtime(), 1);
+var import_react197 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Modal/ModalBody.mjs
-var import_jsx_runtime149 = __toESM(require_jsx_runtime(), 1);
-var import_react186 = __toESM(require_react(), 1);
+var import_jsx_runtime152 = __toESM(require_jsx_runtime(), 1);
+var import_react189 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Modal/Modal.context.mjs
-var import_react185 = __toESM(require_react(), 1);
-var import_jsx_runtime148 = __toESM(require_jsx_runtime(), 1);
+var import_react188 = __toESM(require_react(), 1);
+var import_jsx_runtime151 = __toESM(require_jsx_runtime(), 1);
 "use client";
 var [ModalProvider, useModalContext] = createSafeContext("Modal component was not found in tree");
 
 // node_modules/@mantine/core/esm/components/Modal/Modal.module.css.mjs
 "use client";
-var classes26 = { root: "m_9df02822", content: "m_54c44539", inner: "m_1f958f16", header: "m_d0e2b9cd" };
+var classes27 = { root: "m_9df02822", content: "m_54c44539", inner: "m_1f958f16", header: "m_d0e2b9cd" };
 
 // node_modules/@mantine/core/esm/components/Modal/ModalBody.mjs
 "use client";
-var defaultProps66 = {};
+var defaultProps68 = {};
 var ModalBody = factory((_props, ref) => {
-  const props = useProps("ModalBody", defaultProps66, _props);
+  const props = useProps("ModalBody", defaultProps68, _props);
   const { classNames, className, style, styles, vars, ...others } = props;
   const ctx = useModalContext();
-  return /* @__PURE__ */ import_jsx_runtime149.jsx(ModalBaseBody, {
+  return /* @__PURE__ */ import_jsx_runtime152.jsx(ModalBaseBody, {
     ref,
     ...ctx.getStyles("body", { classNames, style, styles, className }),
     ...others
   });
 });
-ModalBody.classes = classes26;
+ModalBody.classes = classes27;
 ModalBody.displayName = "@mantine/core/ModalBody";
 
 // node_modules/@mantine/core/esm/components/Modal/ModalCloseButton.mjs
-var import_jsx_runtime150 = __toESM(require_jsx_runtime(), 1);
-var import_react187 = __toESM(require_react(), 1);
+var import_jsx_runtime153 = __toESM(require_jsx_runtime(), 1);
+var import_react190 = __toESM(require_react(), 1);
 "use client";
-var defaultProps67 = {};
+var defaultProps69 = {};
 var ModalCloseButton = factory((_props, ref) => {
-  const props = useProps("ModalCloseButton", defaultProps67, _props);
+  const props = useProps("ModalCloseButton", defaultProps69, _props);
   const { classNames, className, style, styles, vars, ...others } = props;
   const ctx = useModalContext();
-  return /* @__PURE__ */ import_jsx_runtime150.jsx(ModalBaseCloseButton, {
+  return /* @__PURE__ */ import_jsx_runtime153.jsx(ModalBaseCloseButton, {
     ref,
     ...ctx.getStyles("close", { classNames, style, styles, className }),
     ...others
   });
 });
-ModalCloseButton.classes = classes26;
+ModalCloseButton.classes = classes27;
 ModalCloseButton.displayName = "@mantine/core/ModalCloseButton";
 
 // node_modules/@mantine/core/esm/components/Modal/ModalContent.mjs
-var import_jsx_runtime151 = __toESM(require_jsx_runtime(), 1);
-var import_react188 = __toESM(require_react(), 1);
+var import_jsx_runtime154 = __toESM(require_jsx_runtime(), 1);
+var import_react191 = __toESM(require_react(), 1);
 "use client";
-var defaultProps68 = {};
+var defaultProps70 = {};
 var ModalContent = factory((_props, ref) => {
-  const props = useProps("ModalContent", defaultProps68, _props);
+  const props = useProps("ModalContent", defaultProps70, _props);
   const { classNames, className, style, styles, vars, children, __hidden, ...others } = props;
   const ctx = useModalContext();
   const Scroll = ctx.scrollAreaComponent || NativeScrollArea;
-  return /* @__PURE__ */ import_jsx_runtime151.jsx(ModalBaseContent, {
+  return /* @__PURE__ */ import_jsx_runtime154.jsx(ModalBaseContent, {
     ...ctx.getStyles("content", { className, style, styles, classNames }),
     innerProps: ctx.getStyles("inner", { className, style, styles, classNames }),
     "data-full-screen": ctx.fullScreen || undefined,
@@ -36985,7 +36947,7 @@ var ModalContent = factory((_props, ref) => {
     "data-hidden": __hidden || undefined,
     ref,
     ...others,
-    children: /* @__PURE__ */ import_jsx_runtime151.jsx(Scroll, {
+    children: /* @__PURE__ */ import_jsx_runtime154.jsx(Scroll, {
       style: {
         maxHeight: ctx.fullScreen ? "100dvh" : `calc(100dvh - (${rem(ctx.yOffset)} * 2))`
       },
@@ -36993,50 +36955,50 @@ var ModalContent = factory((_props, ref) => {
     })
   });
 });
-ModalContent.classes = classes26;
+ModalContent.classes = classes27;
 ModalContent.displayName = "@mantine/core/ModalContent";
 
 // node_modules/@mantine/core/esm/components/Modal/ModalHeader.mjs
-var import_jsx_runtime152 = __toESM(require_jsx_runtime(), 1);
-var import_react189 = __toESM(require_react(), 1);
+var import_jsx_runtime155 = __toESM(require_jsx_runtime(), 1);
+var import_react192 = __toESM(require_react(), 1);
 "use client";
-var defaultProps69 = {};
+var defaultProps71 = {};
 var ModalHeader = factory((_props, ref) => {
-  const props = useProps("ModalHeader", defaultProps69, _props);
+  const props = useProps("ModalHeader", defaultProps71, _props);
   const { classNames, className, style, styles, vars, ...others } = props;
   const ctx = useModalContext();
-  return /* @__PURE__ */ import_jsx_runtime152.jsx(ModalBaseHeader, {
+  return /* @__PURE__ */ import_jsx_runtime155.jsx(ModalBaseHeader, {
     ref,
     ...ctx.getStyles("header", { classNames, style, styles, className }),
     ...others
   });
 });
-ModalHeader.classes = classes26;
+ModalHeader.classes = classes27;
 ModalHeader.displayName = "@mantine/core/ModalHeader";
 
 // node_modules/@mantine/core/esm/components/Modal/ModalOverlay.mjs
-var import_jsx_runtime153 = __toESM(require_jsx_runtime(), 1);
-var import_react190 = __toESM(require_react(), 1);
+var import_jsx_runtime156 = __toESM(require_jsx_runtime(), 1);
+var import_react193 = __toESM(require_react(), 1);
 "use client";
-var defaultProps70 = {};
+var defaultProps72 = {};
 var ModalOverlay = factory((_props, ref) => {
-  const props = useProps("ModalOverlay", defaultProps70, _props);
+  const props = useProps("ModalOverlay", defaultProps72, _props);
   const { classNames, className, style, styles, vars, ...others } = props;
   const ctx = useModalContext();
-  return /* @__PURE__ */ import_jsx_runtime153.jsx(ModalBaseOverlay, {
+  return /* @__PURE__ */ import_jsx_runtime156.jsx(ModalBaseOverlay, {
     ref,
     ...ctx.getStyles("overlay", { classNames, style, styles, className }),
     ...others
   });
 });
-ModalOverlay.classes = classes26;
+ModalOverlay.classes = classes27;
 ModalOverlay.displayName = "@mantine/core/ModalOverlay";
 
 // node_modules/@mantine/core/esm/components/Modal/ModalRoot.mjs
-var import_jsx_runtime154 = __toESM(require_jsx_runtime(), 1);
-var import_react191 = __toESM(require_react(), 1);
+var import_jsx_runtime157 = __toESM(require_jsx_runtime(), 1);
+var import_react194 = __toESM(require_react(), 1);
 "use client";
-var defaultProps71 = {
+var defaultProps73 = {
   __staticSelector: "Modal",
   closeOnClickOutside: true,
   withinPortal: true,
@@ -37049,7 +37011,7 @@ var defaultProps71 = {
   transitionProps: { duration: 200, transition: "fade-down" },
   yOffset: "5dvh"
 };
-var varsResolver30 = createVarsResolver((_2, { radius, size: size4, yOffset, xOffset }) => ({
+var varsResolver31 = createVarsResolver((_2, { radius, size: size4, yOffset, xOffset }) => ({
   root: {
     "--modal-radius": radius === undefined ? undefined : getRadius(radius),
     "--modal-size": getSize(size4, "modal-size"),
@@ -37058,7 +37020,7 @@ var varsResolver30 = createVarsResolver((_2, { radius, size: size4, yOffset, xOf
   }
 }));
 var ModalRoot = factory((_props, ref) => {
-  const props = useProps("ModalRoot", defaultProps71, _props);
+  const props = useProps("ModalRoot", defaultProps73, _props);
   const {
     classNames,
     className,
@@ -37077,7 +37039,7 @@ var ModalRoot = factory((_props, ref) => {
   } = props;
   const getStyles2 = useStyles({
     name: __staticSelector,
-    classes: classes26,
+    classes: classes27,
     props,
     className,
     style,
@@ -37085,9 +37047,9 @@ var ModalRoot = factory((_props, ref) => {
     styles,
     unstyled,
     vars,
-    varsResolver: varsResolver30
+    varsResolver: varsResolver31
   });
-  return /* @__PURE__ */ import_jsx_runtime154.jsx(ModalProvider, { value: { yOffset, scrollAreaComponent, getStyles: getStyles2, fullScreen }, children: /* @__PURE__ */ import_jsx_runtime154.jsx(ModalBase, {
+  return /* @__PURE__ */ import_jsx_runtime157.jsx(ModalProvider, { value: { yOffset, scrollAreaComponent, getStyles: getStyles2, fullScreen }, children: /* @__PURE__ */ import_jsx_runtime157.jsx(ModalBase, {
     ref,
     ...getStyles2("root"),
     "data-full-screen": fullScreen || undefined,
@@ -37096,18 +37058,18 @@ var ModalRoot = factory((_props, ref) => {
     ...others
   }) });
 });
-ModalRoot.classes = classes26;
+ModalRoot.classes = classes27;
 ModalRoot.displayName = "@mantine/core/ModalRoot";
 
 // node_modules/@mantine/core/esm/components/Modal/ModalStack.mjs
-var import_jsx_runtime155 = __toESM(require_jsx_runtime(), 1);
-var import_react192 = __toESM(require_react(), 1);
+var import_jsx_runtime158 = __toESM(require_jsx_runtime(), 1);
+var import_react195 = __toESM(require_react(), 1);
 "use client";
 var [ModalStackProvider, useModalStackContext] = createOptionalContext();
 function ModalStack({ children }) {
-  const [stack, setStack] = import_react192.useState([]);
-  const [maxZIndex, setMaxZIndex] = import_react192.useState(getDefaultZIndex("modal"));
-  return /* @__PURE__ */ import_jsx_runtime155.jsx(ModalStackProvider, {
+  const [stack, setStack] = import_react195.useState([]);
+  const [maxZIndex, setMaxZIndex] = import_react195.useState(getDefaultZIndex("modal"));
+  return /* @__PURE__ */ import_jsx_runtime158.jsx(ModalStackProvider, {
     value: {
       stack,
       addModal: (id, zIndex) => {
@@ -37125,26 +37087,26 @@ function ModalStack({ children }) {
 ModalStack.displayName = "@mantine/core/ModalStack";
 
 // node_modules/@mantine/core/esm/components/Modal/ModalTitle.mjs
-var import_jsx_runtime156 = __toESM(require_jsx_runtime(), 1);
-var import_react193 = __toESM(require_react(), 1);
+var import_jsx_runtime159 = __toESM(require_jsx_runtime(), 1);
+var import_react196 = __toESM(require_react(), 1);
 "use client";
-var defaultProps72 = {};
+var defaultProps74 = {};
 var ModalTitle = factory((_props, ref) => {
-  const props = useProps("ModalTitle", defaultProps72, _props);
+  const props = useProps("ModalTitle", defaultProps74, _props);
   const { classNames, className, style, styles, vars, ...others } = props;
   const ctx = useModalContext();
-  return /* @__PURE__ */ import_jsx_runtime156.jsx(ModalBaseTitle, {
+  return /* @__PURE__ */ import_jsx_runtime159.jsx(ModalBaseTitle, {
     ref,
     ...ctx.getStyles("title", { classNames, style, styles, className }),
     ...others
   });
 });
-ModalTitle.classes = classes26;
+ModalTitle.classes = classes27;
 ModalTitle.displayName = "@mantine/core/ModalTitle";
 
 // node_modules/@mantine/core/esm/components/Modal/Modal.mjs
 "use client";
-var defaultProps73 = {
+var defaultProps75 = {
   closeOnClickOutside: true,
   withinPortal: true,
   lockScroll: true,
@@ -37170,7 +37132,7 @@ var Modal = factory((_props, ref) => {
     stackId,
     zIndex,
     ...others
-  } = useProps("Modal", defaultProps73, _props);
+  } = useProps("Modal", defaultProps75, _props);
   const ctx = useModalStackContext();
   const hasHeader = !!title || withCloseButton;
   const stackProps = ctx && stackId ? {
@@ -37179,12 +37141,12 @@ var Modal = factory((_props, ref) => {
     zIndex: ctx.getZIndex(stackId)
   } : {};
   const overlayVisible = withOverlay === false ? false : stackId && ctx ? ctx.currentId === stackId : opened;
-  import_react194.useEffect(() => {
+  import_react197.useEffect(() => {
     if (ctx && stackId) {
       opened ? ctx.addModal(stackId, zIndex || getDefaultZIndex("modal")) : ctx.removeModal(stackId);
     }
   }, [opened, stackId, zIndex]);
-  return /* @__PURE__ */ import_jsx_runtime157.jsxs(ModalRoot, {
+  return /* @__PURE__ */ import_jsx_runtime160.jsxs(ModalRoot, {
     ref,
     radius,
     opened,
@@ -37192,26 +37154,26 @@ var Modal = factory((_props, ref) => {
     ...others,
     ...stackProps,
     children: [
-      withOverlay && /* @__PURE__ */ import_jsx_runtime157.jsx(ModalOverlay, {
+      withOverlay && /* @__PURE__ */ import_jsx_runtime160.jsx(ModalOverlay, {
         visible: overlayVisible,
         transitionProps: ctx && stackId ? { duration: 0 } : undefined,
         ...overlayProps
       }),
-      /* @__PURE__ */ import_jsx_runtime157.jsxs(ModalContent, {
+      /* @__PURE__ */ import_jsx_runtime160.jsxs(ModalContent, {
         radius,
         __hidden: ctx && stackId && opened ? stackId !== ctx.currentId : false,
         children: [
-          hasHeader && /* @__PURE__ */ import_jsx_runtime157.jsxs(ModalHeader, { children: [
-            title && /* @__PURE__ */ import_jsx_runtime157.jsx(ModalTitle, { children: title }),
-            withCloseButton && /* @__PURE__ */ import_jsx_runtime157.jsx(ModalCloseButton, { ...closeButtonProps })
+          hasHeader && /* @__PURE__ */ import_jsx_runtime160.jsxs(ModalHeader, { children: [
+            title && /* @__PURE__ */ import_jsx_runtime160.jsx(ModalTitle, { children: title }),
+            withCloseButton && /* @__PURE__ */ import_jsx_runtime160.jsx(ModalCloseButton, { ...closeButtonProps })
           ] }),
-          /* @__PURE__ */ import_jsx_runtime157.jsx(ModalBody, { children })
+          /* @__PURE__ */ import_jsx_runtime160.jsx(ModalBody, { children })
         ]
       })
     ]
   });
 });
-Modal.classes = classes26;
+Modal.classes = classes27;
 Modal.displayName = "@mantine/core/Modal";
 Modal.Root = ModalRoot;
 Modal.Overlay = ModalOverlay;
@@ -37222,49 +37184,49 @@ Modal.Title = ModalTitle;
 Modal.CloseButton = ModalCloseButton;
 Modal.Stack = ModalStack;
 // node_modules/@mantine/core/esm/components/MultiSelect/MultiSelect.mjs
-var import_jsx_runtime165 = __toESM(require_jsx_runtime(), 1);
-var import_react202 = __toESM(require_react(), 1);
+var import_jsx_runtime168 = __toESM(require_jsx_runtime(), 1);
+var import_react205 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Pill/Pill.mjs
-var import_jsx_runtime161 = __toESM(require_jsx_runtime(), 1);
-var import_react198 = __toESM(require_react(), 1);
+var import_jsx_runtime164 = __toESM(require_jsx_runtime(), 1);
+var import_react201 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/PillsInput/PillsInput.context.mjs
-var import_react195 = __toESM(require_react(), 1);
-var import_jsx_runtime158 = __toESM(require_jsx_runtime(), 1);
+var import_react198 = __toESM(require_react(), 1);
+var import_jsx_runtime161 = __toESM(require_jsx_runtime(), 1);
 "use client";
 var [PillsInputProvider, usePillsInputContext] = createOptionalContext();
 
 // node_modules/@mantine/core/esm/components/Pill/PillGroup.context.mjs
-var import_react196 = __toESM(require_react(), 1);
-var import_jsx_runtime159 = __toESM(require_jsx_runtime(), 1);
+var import_react199 = __toESM(require_react(), 1);
+var import_jsx_runtime162 = __toESM(require_jsx_runtime(), 1);
 "use client";
 var [PillGroupProvider, usePillGroupContext] = createOptionalContext();
 
 // node_modules/@mantine/core/esm/components/Pill/PillGroup/PillGroup.mjs
-var import_jsx_runtime160 = __toESM(require_jsx_runtime(), 1);
-var import_react197 = __toESM(require_react(), 1);
+var import_jsx_runtime163 = __toESM(require_jsx_runtime(), 1);
+var import_react200 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Pill/Pill.module.css.mjs
 "use client";
-var classes27 = { root: "m_7cda1cd6", "root--default": "m_44da308b", "root--contrast": "m_e3a01f8", label: "m_1e0e6180", remove: "m_ae386778", group: "m_1dcfd90b" };
+var classes28 = { root: "m_7cda1cd6", "root--default": "m_44da308b", "root--contrast": "m_e3a01f8", label: "m_1e0e6180", remove: "m_ae386778", group: "m_1dcfd90b" };
 
 // node_modules/@mantine/core/esm/components/Pill/PillGroup/PillGroup.mjs
 "use client";
-var defaultProps74 = {};
-var varsResolver31 = createVarsResolver((_2, { gap }, { size: size4 }) => ({
+var defaultProps76 = {};
+var varsResolver32 = createVarsResolver((_2, { gap }, { size: size4 }) => ({
   group: {
     "--pg-gap": gap !== undefined ? getSize(gap) : getSize(size4, "pg-gap")
   }
 }));
 var PillGroup = factory((_props, ref) => {
-  const props = useProps("PillGroup", defaultProps74, _props);
+  const props = useProps("PillGroup", defaultProps76, _props);
   const { classNames, className, style, styles, unstyled, vars, size: size4, disabled, ...others } = props;
   const pillsInputCtx = usePillsInputContext();
   const _size = pillsInputCtx?.size || size4 || undefined;
   const getStyles2 = useStyles({
     name: "PillGroup",
-    classes: classes27,
+    classes: classes28,
     props,
     className,
     style,
@@ -37272,21 +37234,21 @@ var PillGroup = factory((_props, ref) => {
     styles,
     unstyled,
     vars,
-    varsResolver: varsResolver31,
+    varsResolver: varsResolver32,
     stylesCtx: { size: _size },
     rootSelector: "group"
   });
-  return /* @__PURE__ */ import_jsx_runtime160.jsx(PillGroupProvider, { value: { size: _size, disabled }, children: /* @__PURE__ */ import_jsx_runtime160.jsx(Box, { ref, size: _size, ...getStyles2("group"), ...others }) });
+  return /* @__PURE__ */ import_jsx_runtime163.jsx(PillGroupProvider, { value: { size: _size, disabled }, children: /* @__PURE__ */ import_jsx_runtime163.jsx(Box, { ref, size: _size, ...getStyles2("group"), ...others }) });
 });
-PillGroup.classes = classes27;
+PillGroup.classes = classes28;
 PillGroup.displayName = "@mantine/core/PillGroup";
 
 // node_modules/@mantine/core/esm/components/Pill/Pill.mjs
 "use client";
-var defaultProps75 = {
+var defaultProps77 = {
   variant: "default"
 };
-var varsResolver32 = createVarsResolver((_2, { radius }, { size: size4 }) => ({
+var varsResolver33 = createVarsResolver((_2, { radius }, { size: size4 }) => ({
   root: {
     "--pill-fz": getSize(size4, "pill-fz"),
     "--pill-height": getSize(size4, "pill-height"),
@@ -37294,7 +37256,7 @@ var varsResolver32 = createVarsResolver((_2, { radius }, { size: size4 }) => ({
   }
 }));
 var Pill = factory((_props, ref) => {
-  const props = useProps("Pill", defaultProps75, _props);
+  const props = useProps("Pill", defaultProps77, _props);
   const {
     classNames,
     className,
@@ -37319,7 +37281,7 @@ var Pill = factory((_props, ref) => {
   const _variant = pillsInputCtx?.variant === "filled" ? "contrast" : variant || "default";
   const getStyles2 = useStyles({
     name: "Pill",
-    classes: classes27,
+    classes: classes28,
     props,
     className,
     style,
@@ -37327,10 +37289,10 @@ var Pill = factory((_props, ref) => {
     styles,
     unstyled,
     vars,
-    varsResolver: varsResolver32,
+    varsResolver: varsResolver33,
     stylesCtx: { size: _size }
   });
-  return /* @__PURE__ */ import_jsx_runtime161.jsxs(Box, {
+  return /* @__PURE__ */ import_jsx_runtime164.jsxs(Box, {
     component: "span",
     ref,
     variant: _variant,
@@ -37342,8 +37304,8 @@ var Pill = factory((_props, ref) => {
     ],
     ...others,
     children: [
-      /* @__PURE__ */ import_jsx_runtime161.jsx("span", { ...getStyles2("label"), children }),
-      withRemoveButton && /* @__PURE__ */ import_jsx_runtime161.jsx(CloseButton, {
+      /* @__PURE__ */ import_jsx_runtime164.jsx("span", { ...getStyles2("label"), children }),
+      withRemoveButton && /* @__PURE__ */ import_jsx_runtime164.jsx(CloseButton, {
         variant: "transparent",
         radius,
         tabIndex: -1,
@@ -37368,29 +37330,29 @@ var Pill = factory((_props, ref) => {
     ]
   });
 });
-Pill.classes = classes27;
+Pill.classes = classes28;
 Pill.displayName = "@mantine/core/Pill";
 Pill.Group = PillGroup;
 
 // node_modules/@mantine/core/esm/components/PillsInput/PillsInput.mjs
-var import_jsx_runtime163 = __toESM(require_jsx_runtime(), 1);
-var import_react200 = __toESM(require_react(), 1);
+var import_jsx_runtime166 = __toESM(require_jsx_runtime(), 1);
+var import_react203 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/PillsInput/PillsInputField/PillsInputField.mjs
-var import_jsx_runtime162 = __toESM(require_jsx_runtime(), 1);
-var import_react199 = __toESM(require_react(), 1);
+var import_jsx_runtime165 = __toESM(require_jsx_runtime(), 1);
+var import_react202 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/PillsInput/PillsInput.module.css.mjs
 "use client";
-var classes28 = { field: "m_45c4369d" };
+var classes29 = { field: "m_45c4369d" };
 
 // node_modules/@mantine/core/esm/components/PillsInput/PillsInputField/PillsInputField.mjs
 "use client";
-var defaultProps76 = {
+var defaultProps78 = {
   type: "visible"
 };
 var PillsInputField = factory((_props, ref) => {
-  const props = useProps("PillsInputField", defaultProps76, _props);
+  const props = useProps("PillsInputField", defaultProps78, _props);
   const {
     classNames,
     className,
@@ -37409,7 +37371,7 @@ var PillsInputField = factory((_props, ref) => {
   const inputWrapperCtx = useInputWrapperContext();
   const getStyles2 = useStyles({
     name: "PillsInputField",
-    classes: classes28,
+    classes: classes29,
     props,
     className,
     style,
@@ -37419,7 +37381,7 @@ var PillsInputField = factory((_props, ref) => {
     rootSelector: "field"
   });
   const _disabled = disabled || ctx?.disabled;
-  return /* @__PURE__ */ import_jsx_runtime162.jsx(Box, {
+  return /* @__PURE__ */ import_jsx_runtime165.jsx(Box, {
     component: "input",
     ref: useMergedRef(ref, ctx?.fieldRef),
     "data-type": type,
@@ -37434,14 +37396,14 @@ var PillsInputField = factory((_props, ref) => {
     onMouseDown: (event) => !pointer && event.stopPropagation()
   });
 });
-PillsInputField.classes = classes28;
+PillsInputField.classes = classes29;
 PillsInputField.displayName = "@mantine/core/PillsInputField";
 
 // node_modules/@mantine/core/esm/components/PillsInput/PillsInput.mjs
 "use client";
-var defaultProps77 = {};
+var defaultProps79 = {};
 var PillsInput = factory((_props, ref) => {
-  const props = useProps("PillsInput", defaultProps77, _props);
+  const props = useProps("PillsInput", defaultProps79, _props);
   const {
     children,
     onMouseDown,
@@ -37453,8 +37415,8 @@ var PillsInput = factory((_props, ref) => {
     variant,
     ...others
   } = props;
-  const fieldRef = import_react200.useRef(null);
-  return /* @__PURE__ */ import_jsx_runtime163.jsx(PillsInputProvider, { value: { fieldRef, size: size4, disabled, hasError: !!error2, variant }, children: /* @__PURE__ */ import_jsx_runtime163.jsx(InputBase, {
+  const fieldRef = import_react203.useRef(null);
+  return /* @__PURE__ */ import_jsx_runtime166.jsx(PillsInputProvider, { value: { fieldRef, size: size4, disabled, hasError: !!error2, variant }, children: /* @__PURE__ */ import_jsx_runtime166.jsx(InputBase, {
     size: size4,
     error: error2,
     variant,
@@ -37485,8 +37447,8 @@ PillsInput.displayName = "@mantine/core/PillsInput";
 PillsInput.Field = PillsInputField;
 
 // node_modules/@mantine/core/esm/components/MultiSelect/filter-picked-values.mjs
-var import_jsx_runtime164 = __toESM(require_jsx_runtime(), 1);
-var import_react201 = __toESM(require_react(), 1);
+var import_jsx_runtime167 = __toESM(require_jsx_runtime(), 1);
+var import_react204 = __toESM(require_react(), 1);
 "use client";
 function filterPickedValues({ data, value }) {
   const normalizedValue = value.map((item) => item.trim().toLowerCase());
@@ -37506,14 +37468,14 @@ function filterPickedValues({ data, value }) {
 
 // node_modules/@mantine/core/esm/components/MultiSelect/MultiSelect.mjs
 "use client";
-var defaultProps78 = {
+var defaultProps80 = {
   maxValues: Infinity,
   withCheckIcon: true,
   checkIconPosition: "left",
   hiddenInputValuesDivider: ","
 };
 var MultiSelect = factory((_props, ref) => {
-  const props = useProps("MultiSelect", defaultProps78, _props);
+  const props = useProps("MultiSelect", defaultProps80, _props);
   const {
     classNames,
     className,
@@ -37642,7 +37604,7 @@ var MultiSelect = factory((_props, ref) => {
       setValue(_value.slice(0, _value.length - 1));
     }
   };
-  const values2 = _value.map((item, index3) => /* @__PURE__ */ import_jsx_runtime165.jsx(Pill, {
+  const values2 = _value.map((item, index3) => /* @__PURE__ */ import_jsx_runtime168.jsx(Pill, {
     withRemoveButton: !readOnly && !optionsLockup[item]?.disabled,
     onRemove: () => {
       setValue(_value.filter((i2) => item !== i2));
@@ -37653,12 +37615,12 @@ var MultiSelect = factory((_props, ref) => {
     ...getStyles2("pill"),
     children: optionsLockup[item]?.label || item
   }, `${item}-${index3}`));
-  import_react202.useEffect(() => {
+  import_react205.useEffect(() => {
     if (selectFirstOptionOnChange) {
       combobox.selectFirstOption();
     }
   }, [selectFirstOptionOnChange, _value]);
-  const clearButton = /* @__PURE__ */ import_jsx_runtime165.jsx(Combobox.ClearButton, {
+  const clearButton = /* @__PURE__ */ import_jsx_runtime168.jsx(Combobox.ClearButton, {
     ...clearButtonProps,
     onClear: () => {
       onClear?.();
@@ -37668,8 +37630,8 @@ var MultiSelect = factory((_props, ref) => {
   });
   const filteredData = filterPickedValues({ data: parsedData, value: _value });
   const _clearable = clearable && _value.length > 0 && !disabled && !readOnly;
-  return /* @__PURE__ */ import_jsx_runtime165.jsxs(import_jsx_runtime165.Fragment, { children: [
-    /* @__PURE__ */ import_jsx_runtime165.jsxs(Combobox, {
+  return /* @__PURE__ */ import_jsx_runtime168.jsxs(import_jsx_runtime168.Fragment, { children: [
+    /* @__PURE__ */ import_jsx_runtime168.jsxs(Combobox, {
       store: combobox,
       classNames: resolvedClassNames,
       styles: resolvedStyles,
@@ -37690,7 +37652,7 @@ var MultiSelect = factory((_props, ref) => {
       },
       ...comboboxProps,
       children: [
-        /* @__PURE__ */ import_jsx_runtime165.jsx(Combobox.DropdownTarget, { children: /* @__PURE__ */ import_jsx_runtime165.jsx(PillsInput, {
+        /* @__PURE__ */ import_jsx_runtime168.jsx(Combobox.DropdownTarget, { children: /* @__PURE__ */ import_jsx_runtime168.jsx(PillsInput, {
           ...styleProps,
           __staticSelector: "MultiSelect",
           classNames: resolvedClassNames,
@@ -37702,7 +37664,7 @@ var MultiSelect = factory((_props, ref) => {
           variant,
           disabled,
           radius,
-          __defaultRightSection: /* @__PURE__ */ import_jsx_runtime165.jsx(Combobox.Chevron, {
+          __defaultRightSection: /* @__PURE__ */ import_jsx_runtime168.jsx(Combobox.Chevron, {
             size: size4,
             error: error2,
             unstyled,
@@ -37741,9 +37703,9 @@ var MultiSelect = factory((_props, ref) => {
           id: _id,
           required,
           mod,
-          children: /* @__PURE__ */ import_jsx_runtime165.jsxs(Pill.Group, { disabled, unstyled, ...getStyles2("pillsList"), children: [
+          children: /* @__PURE__ */ import_jsx_runtime168.jsxs(Pill.Group, { disabled, unstyled, ...getStyles2("pillsList"), children: [
             values2,
-            /* @__PURE__ */ import_jsx_runtime165.jsx(Combobox.EventsTarget, { autoComplete, children: /* @__PURE__ */ import_jsx_runtime165.jsx(PillsInput.Field, {
+            /* @__PURE__ */ import_jsx_runtime168.jsx(Combobox.EventsTarget, { autoComplete, children: /* @__PURE__ */ import_jsx_runtime168.jsx(PillsInput.Field, {
               ...rest,
               ref,
               id: _id,
@@ -37773,7 +37735,7 @@ var MultiSelect = factory((_props, ref) => {
             }) })
           ] })
         }) }),
-        /* @__PURE__ */ import_jsx_runtime165.jsx(OptionsDropdown, {
+        /* @__PURE__ */ import_jsx_runtime168.jsx(OptionsDropdown, {
           data: hidePickedOptions ? filteredData : parsedData,
           hidden: readOnly || disabled,
           filter: filter2,
@@ -37795,7 +37757,7 @@ var MultiSelect = factory((_props, ref) => {
         })
       ]
     }),
-    /* @__PURE__ */ import_jsx_runtime165.jsx(Combobox.HiddenInput, {
+    /* @__PURE__ */ import_jsx_runtime168.jsx(Combobox.HiddenInput, {
       name,
       valuesDivider: hiddenInputValuesDivider,
       value: _value,
@@ -37808,8 +37770,8 @@ var MultiSelect = factory((_props, ref) => {
 MultiSelect.classes = { ...InputBase.classes, ...Combobox.classes };
 MultiSelect.displayName = "@mantine/core/MultiSelect";
 // node_modules/@mantine/core/esm/components/Tooltip/Tooltip.mjs
-var import_jsx_runtime168 = __toESM(require_jsx_runtime(), 1);
-var import_react211 = __toESM(require_react(), 1);
+var import_jsx_runtime171 = __toESM(require_jsx_runtime(), 1);
+var import_react214 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Transition/get-transition-props/get-transition-props.mjs
 "use client";
@@ -37822,19 +37784,19 @@ function getTransitionProps(transitionProps, componentTransition) {
 }
 
 // node_modules/@mantine/core/esm/components/Tooltip/TooltipFloating/TooltipFloating.mjs
-var import_jsx_runtime166 = __toESM(require_jsx_runtime(), 1);
-var import_react205 = __toESM(require_react(), 1);
+var import_jsx_runtime169 = __toESM(require_jsx_runtime(), 1);
+var import_react208 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Tooltip/TooltipFloating/use-floating-tooltip.mjs
-var import_react203 = __toESM(require_react(), 1);
+var import_react206 = __toESM(require_react(), 1);
 "use client";
 function useFloatingTooltip({
   offset: offset4,
   position: position2,
   defaultOpened
 }) {
-  const [opened, setOpened] = import_react203.useState(defaultOpened);
-  const boundaryRef = import_react203.useRef(null);
+  const [opened, setOpened] = import_react206.useState(defaultOpened);
+  const boundaryRef = import_react206.useRef(null);
   const { x: x2, y: y2, elements, refs, update, placement } = useFloating2({
     placement: position2,
     middleware: [
@@ -37847,7 +37809,7 @@ function useFloatingTooltip({
   });
   const horizontalOffset = placement.includes("right") ? offset4 : position2.includes("left") ? offset4 * -1 : 0;
   const verticalOffset = placement.includes("bottom") ? offset4 : position2.includes("top") ? offset4 * -1 : 0;
-  const handleMouseMove = import_react203.useCallback(({ clientX, clientY }) => {
+  const handleMouseMove = import_react206.useCallback(({ clientX, clientY }) => {
     refs.setPositionReference({
       getBoundingClientRect() {
         return {
@@ -37863,7 +37825,7 @@ function useFloatingTooltip({
       }
     });
   }, [elements.reference]);
-  import_react203.useEffect(() => {
+  import_react206.useEffect(() => {
     if (refs.floating.current) {
       const boundary = boundaryRef.current;
       boundary.addEventListener("mousemove", handleMouseMove);
@@ -37885,11 +37847,11 @@ function useFloatingTooltip({
 
 // node_modules/@mantine/core/esm/components/Tooltip/Tooltip.module.css.mjs
 "use client";
-var classes29 = { tooltip: "m_1b3c8819", arrow: "m_f898399f" };
+var classes30 = { tooltip: "m_1b3c8819", arrow: "m_f898399f" };
 
 // node_modules/@mantine/core/esm/components/Tooltip/TooltipFloating/TooltipFloating.mjs
 "use client";
-var defaultProps79 = {
+var defaultProps81 = {
   refProp: "ref",
   withinPortal: true,
   offset: 10,
@@ -37897,7 +37859,7 @@ var defaultProps79 = {
   position: "right",
   zIndex: getDefaultZIndex("popover")
 };
-var varsResolver33 = createVarsResolver((theme, { radius, color }) => ({
+var varsResolver34 = createVarsResolver((theme, { radius, color }) => ({
   tooltip: {
     "--tooltip-radius": radius === undefined ? undefined : getRadius(radius),
     "--tooltip-bg": color ? getThemeColor(color, theme) : undefined,
@@ -37905,7 +37867,7 @@ var varsResolver33 = createVarsResolver((theme, { radius, color }) => ({
   }
 }));
 var TooltipFloating = factory((_props, ref) => {
-  const props = useProps("TooltipFloating", defaultProps79, _props);
+  const props = useProps("TooltipFloating", defaultProps81, _props);
   const {
     children,
     refProp,
@@ -37933,7 +37895,7 @@ var TooltipFloating = factory((_props, ref) => {
   const getStyles2 = useStyles({
     name: "TooltipFloating",
     props,
-    classes: classes29,
+    classes: classes30,
     className,
     style,
     classNames,
@@ -37941,7 +37903,7 @@ var TooltipFloating = factory((_props, ref) => {
     unstyled,
     rootSelector: "tooltip",
     vars,
-    varsResolver: varsResolver33
+    varsResolver: varsResolver34
   });
   const { handleMouseMove, x: x2, y: y2, opened, boundaryRef, floating, setOpened } = useFloatingTooltip({
     offset: offset4,
@@ -37962,8 +37924,8 @@ var TooltipFloating = factory((_props, ref) => {
     _childrenProps.onMouseLeave?.(event);
     setOpened(false);
   };
-  return /* @__PURE__ */ import_jsx_runtime166.jsxs(import_jsx_runtime166.Fragment, { children: [
-    /* @__PURE__ */ import_jsx_runtime166.jsx(OptionalPortal, { ...portalProps, withinPortal, children: /* @__PURE__ */ import_jsx_runtime166.jsx(Box, {
+  return /* @__PURE__ */ import_jsx_runtime169.jsxs(import_jsx_runtime169.Fragment, { children: [
+    /* @__PURE__ */ import_jsx_runtime169.jsx(OptionalPortal, { ...portalProps, withinPortal, children: /* @__PURE__ */ import_jsx_runtime169.jsx(Box, {
       ...others,
       ...getStyles2("tooltip", {
         style: {
@@ -37979,7 +37941,7 @@ var TooltipFloating = factory((_props, ref) => {
       mod: { multiline },
       children: label
     }) }),
-    import_react205.cloneElement(children, {
+    import_react208.cloneElement(children, {
       ..._childrenProps,
       [refProp]: targetRef,
       onMouseEnter,
@@ -37987,35 +37949,35 @@ var TooltipFloating = factory((_props, ref) => {
     })
   ] });
 });
-TooltipFloating.classes = classes29;
+TooltipFloating.classes = classes30;
 TooltipFloating.displayName = "@mantine/core/TooltipFloating";
 
 // node_modules/@mantine/core/esm/components/Tooltip/TooltipGroup/TooltipGroup.mjs
-var import_jsx_runtime167 = __toESM(require_jsx_runtime(), 1);
-var import_react208 = __toESM(require_react(), 1);
+var import_jsx_runtime170 = __toESM(require_jsx_runtime(), 1);
+var import_react211 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Tooltip/TooltipGroup/TooltipGroup.context.mjs
-var import_react206 = __toESM(require_react(), 1);
+var import_react209 = __toESM(require_react(), 1);
 "use client";
-var TooltipGroupContext = import_react206.createContext(false);
+var TooltipGroupContext = import_react209.createContext(false);
 var TooltipGroupProvider = TooltipGroupContext.Provider;
-var useTooltipGroupContext = () => import_react206.useContext(TooltipGroupContext);
+var useTooltipGroupContext = () => import_react209.useContext(TooltipGroupContext);
 
 // node_modules/@mantine/core/esm/components/Tooltip/TooltipGroup/TooltipGroup.mjs
 "use client";
-var defaultProps80 = {
+var defaultProps82 = {
   openDelay: 0,
   closeDelay: 0
 };
 function TooltipGroup(props) {
-  const { openDelay, closeDelay, children } = useProps("TooltipGroup", defaultProps80, props);
-  return /* @__PURE__ */ import_jsx_runtime167.jsx(TooltipGroupProvider, { value: true, children: /* @__PURE__ */ import_jsx_runtime167.jsx(FloatingDelayGroup, { delay: { open: openDelay, close: closeDelay }, children }) });
+  const { openDelay, closeDelay, children } = useProps("TooltipGroup", defaultProps82, props);
+  return /* @__PURE__ */ import_jsx_runtime170.jsx(TooltipGroupProvider, { value: true, children: /* @__PURE__ */ import_jsx_runtime170.jsx(FloatingDelayGroup, { delay: { open: openDelay, close: closeDelay }, children }) });
 }
 TooltipGroup.displayName = "@mantine/core/TooltipGroup";
 TooltipGroup.extend = (c2) => c2;
 
 // node_modules/@mantine/core/esm/components/Tooltip/use-tooltip.mjs
-var import_react209 = __toESM(require_react(), 1);
+var import_react212 = __toESM(require_react(), 1);
 "use client";
 function getDefaultMiddlewares2(middlewares) {
   if (middlewares === undefined) {
@@ -38048,12 +38010,12 @@ function getTooltipMiddlewares(settings) {
   return middlewares;
 }
 function useTooltip(settings) {
-  const [uncontrolledOpened, setUncontrolledOpened] = import_react209.useState(settings.defaultOpened);
+  const [uncontrolledOpened, setUncontrolledOpened] = import_react212.useState(settings.defaultOpened);
   const controlled = typeof settings.opened === "boolean";
   const opened = controlled ? settings.opened : uncontrolledOpened;
   const withinGroup = useTooltipGroupContext();
   const uid = useId();
-  const onChange = import_react209.useCallback((_opened) => {
+  const onChange = import_react212.useCallback((_opened) => {
     setUncontrolledOpened(_opened);
     if (_opened) {
       setCurrentId(uid);
@@ -38112,7 +38074,7 @@ function useTooltip(settings) {
 
 // node_modules/@mantine/core/esm/components/Tooltip/Tooltip.mjs
 "use client";
-var defaultProps81 = {
+var defaultProps83 = {
   position: "top",
   refProp: "ref",
   withinPortal: true,
@@ -38129,7 +38091,7 @@ var defaultProps81 = {
   positionDependencies: [],
   middlewares: { flip: true, shift: true, inline: false }
 };
-var varsResolver34 = createVarsResolver((theme, { radius, color }) => ({
+var varsResolver35 = createVarsResolver((theme, { radius, color }) => ({
   tooltip: {
     "--tooltip-radius": radius === undefined ? undefined : getRadius(radius),
     "--tooltip-bg": color ? getThemeColor(color, theme) : undefined,
@@ -38137,7 +38099,7 @@ var varsResolver34 = createVarsResolver((theme, { radius, color }) => ({
   }
 }));
 var Tooltip = factory((_props, ref) => {
-  const props = useProps("Tooltip", defaultProps81, _props);
+  const props = useProps("Tooltip", defaultProps83, _props);
   const {
     children,
     position: position2,
@@ -38180,9 +38142,9 @@ var Tooltip = factory((_props, ref) => {
     floatingStrategy,
     middlewares,
     ...others
-  } = useProps("Tooltip", defaultProps81, props);
+  } = useProps("Tooltip", defaultProps83, props);
   const { dir } = useDirection();
-  const arrowRef = import_react211.useRef(null);
+  const arrowRef = import_react214.useRef(null);
   const tooltip = useTooltip({
     position: getFloatingPosition(dir, position2),
     closeDelay,
@@ -38202,7 +38164,7 @@ var Tooltip = factory((_props, ref) => {
   const getStyles2 = useStyles({
     name: "Tooltip",
     props,
-    classes: classes29,
+    classes: classes30,
     className,
     style,
     classNames,
@@ -38210,7 +38172,7 @@ var Tooltip = factory((_props, ref) => {
     unstyled,
     rootSelector: "tooltip",
     vars,
-    varsResolver: varsResolver34
+    varsResolver: varsResolver35
   });
   if (!isElement(children)) {
     throw new Error("[@mantine/core] Tooltip component children should be an element or a component that accepts ref, fragments, strings, numbers and other primitive values are not supported");
@@ -38218,13 +38180,13 @@ var Tooltip = factory((_props, ref) => {
   const targetRef = useMergedRef(tooltip.reference, getRefProp(children), ref);
   const transition = getTransitionProps(transitionProps, { duration: 100, transition: "fade" });
   const _childrenProps = children.props;
-  return /* @__PURE__ */ import_jsx_runtime168.jsxs(import_jsx_runtime168.Fragment, { children: [
-    /* @__PURE__ */ import_jsx_runtime168.jsx(OptionalPortal, { ...portalProps, withinPortal, children: /* @__PURE__ */ import_jsx_runtime168.jsx(Transition, {
+  return /* @__PURE__ */ import_jsx_runtime171.jsxs(import_jsx_runtime171.Fragment, { children: [
+    /* @__PURE__ */ import_jsx_runtime171.jsx(OptionalPortal, { ...portalProps, withinPortal, children: /* @__PURE__ */ import_jsx_runtime171.jsx(Transition, {
       ...transition,
       keepMounted,
       mounted: !disabled && !!tooltip.opened,
       duration: tooltip.isGroupPhase ? 10 : transition.duration,
-      children: (transitionStyles) => /* @__PURE__ */ import_jsx_runtime168.jsxs(Box, {
+      children: (transitionStyles) => /* @__PURE__ */ import_jsx_runtime171.jsxs(Box, {
         ...others,
         "data-fixed": floatingStrategy === "fixed" || undefined,
         variant,
@@ -38242,7 +38204,7 @@ var Tooltip = factory((_props, ref) => {
         }),
         children: [
           label,
-          /* @__PURE__ */ import_jsx_runtime168.jsx(FloatingArrow, {
+          /* @__PURE__ */ import_jsx_runtime171.jsx(FloatingArrow, {
             ref: arrowRef,
             arrowX: tooltip.arrowX,
             arrowY: tooltip.arrowY,
@@ -38257,7 +38219,7 @@ var Tooltip = factory((_props, ref) => {
         ]
       })
     }) }),
-    import_react211.cloneElement(children, tooltip.getReferenceProps({
+    import_react214.cloneElement(children, tooltip.getReferenceProps({
       onClick,
       onMouseEnter,
       onMouseLeave,
@@ -38270,23 +38232,23 @@ var Tooltip = factory((_props, ref) => {
     }))
   ] });
 });
-Tooltip.classes = classes29;
+Tooltip.classes = classes30;
 Tooltip.displayName = "@mantine/core/Tooltip";
 Tooltip.Floating = TooltipFloating;
 Tooltip.Group = TooltipGroup;
 
 // node_modules/@mantine/core/esm/components/Select/Select.mjs
-var import_jsx_runtime169 = __toESM(require_jsx_runtime(), 1);
-var import_react212 = __toESM(require_react(), 1);
+var import_jsx_runtime172 = __toESM(require_jsx_runtime(), 1);
+var import_react215 = __toESM(require_react(), 1);
 "use client";
-var defaultProps82 = {
+var defaultProps84 = {
   searchable: false,
   withCheckIcon: true,
   allowDeselect: true,
   checkIconPosition: "left"
 };
 var Select = factory((_props, ref) => {
-  const props = useProps("Select", defaultProps82, _props);
+  const props = useProps("Select", defaultProps84, _props);
   const {
     classNames,
     styles,
@@ -38340,8 +38302,8 @@ var Select = factory((_props, ref) => {
     chevronColor,
     ...others
   } = props;
-  const parsedData = import_react212.useMemo(() => getParsedComboboxData(data), [data]);
-  const optionsLockup = import_react212.useMemo(() => getOptionsLockup(parsedData), [parsedData]);
+  const parsedData = import_react215.useMemo(() => getParsedComboboxData(data), [data]);
+  const optionsLockup = import_react215.useMemo(() => getOptionsLockup(parsedData), [parsedData]);
   const _id = useId(id);
   const [_value, setValue, controlled] = useUncontrolled({
     value,
@@ -38374,12 +38336,12 @@ var Select = factory((_props, ref) => {
     styles,
     classNames
   });
-  import_react212.useEffect(() => {
+  import_react215.useEffect(() => {
     if (selectFirstOptionOnChange) {
       combobox.selectFirstOption();
     }
   }, [selectFirstOptionOnChange, _value]);
-  import_react212.useEffect(() => {
+  import_react215.useEffect(() => {
     if (value === null) {
       setSearch("");
     }
@@ -38387,7 +38349,7 @@ var Select = factory((_props, ref) => {
       setSearch(selectedOption.label);
     }
   }, [value, selectedOption]);
-  const clearButton = /* @__PURE__ */ import_jsx_runtime169.jsx(Combobox.ClearButton, {
+  const clearButton = /* @__PURE__ */ import_jsx_runtime172.jsx(Combobox.ClearButton, {
     ...clearButtonProps,
     onClear: () => {
       setValue(null, null);
@@ -38396,8 +38358,8 @@ var Select = factory((_props, ref) => {
     }
   });
   const _clearable = clearable && !!_value && !disabled && !readOnly;
-  return /* @__PURE__ */ import_jsx_runtime169.jsxs(import_jsx_runtime169.Fragment, { children: [
-    /* @__PURE__ */ import_jsx_runtime169.jsxs(Combobox, {
+  return /* @__PURE__ */ import_jsx_runtime172.jsxs(import_jsx_runtime172.Fragment, { children: [
+    /* @__PURE__ */ import_jsx_runtime172.jsxs(Combobox, {
       store: combobox,
       __staticSelector: "Select",
       classNames: resolvedClassNames,
@@ -38415,10 +38377,10 @@ var Select = factory((_props, ref) => {
       size: size4,
       ...comboboxProps,
       children: [
-        /* @__PURE__ */ import_jsx_runtime169.jsx(Combobox.Target, { targetType: searchable ? "input" : "button", autoComplete, children: /* @__PURE__ */ import_jsx_runtime169.jsx(InputBase, {
+        /* @__PURE__ */ import_jsx_runtime172.jsx(Combobox.Target, { targetType: searchable ? "input" : "button", autoComplete, children: /* @__PURE__ */ import_jsx_runtime172.jsx(InputBase, {
           id: _id,
           ref,
-          __defaultRightSection: /* @__PURE__ */ import_jsx_runtime169.jsx(Combobox.Chevron, {
+          __defaultRightSection: /* @__PURE__ */ import_jsx_runtime172.jsx(Combobox.Chevron, {
             size: size4,
             error: error2,
             unstyled,
@@ -38458,7 +38420,7 @@ var Select = factory((_props, ref) => {
           pointer: !searchable,
           error: error2
         }) }),
-        /* @__PURE__ */ import_jsx_runtime169.jsx(OptionsDropdown, {
+        /* @__PURE__ */ import_jsx_runtime172.jsx(OptionsDropdown, {
           data: parsedData,
           hidden: readOnly || disabled,
           filter: filter2,
@@ -38480,7 +38442,7 @@ var Select = factory((_props, ref) => {
         })
       ]
     }),
-    /* @__PURE__ */ import_jsx_runtime169.jsx(Combobox.HiddenInput, {
+    /* @__PURE__ */ import_jsx_runtime172.jsx(Combobox.HiddenInput, {
       value: _value,
       name,
       form,
@@ -38492,21 +38454,21 @@ var Select = factory((_props, ref) => {
 Select.classes = { ...InputBase.classes, ...Combobox.classes };
 Select.displayName = "@mantine/core/Select";
 // node_modules/@mantine/core/esm/components/Stack/Stack.mjs
-var import_jsx_runtime170 = __toESM(require_jsx_runtime(), 1);
-var import_react213 = __toESM(require_react(), 1);
+var import_jsx_runtime173 = __toESM(require_jsx_runtime(), 1);
+var import_react216 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Stack/Stack.module.css.mjs
 "use client";
-var classes30 = { root: "m_6d731127" };
+var classes31 = { root: "m_6d731127" };
 
 // node_modules/@mantine/core/esm/components/Stack/Stack.mjs
 "use client";
-var defaultProps83 = {
+var defaultProps85 = {
   gap: "md",
   align: "stretch",
   justify: "flex-start"
 };
-var varsResolver35 = createVarsResolver((_2, { gap, align, justify }) => ({
+var varsResolver36 = createVarsResolver((_2, { gap, align, justify }) => ({
   root: {
     "--stack-gap": getSpacing(gap),
     "--stack-align": align,
@@ -38514,7 +38476,7 @@ var varsResolver35 = createVarsResolver((_2, { gap, align, justify }) => ({
   }
 }));
 var Stack = factory((_props, ref) => {
-  const props = useProps("Stack", defaultProps83, _props);
+  const props = useProps("Stack", defaultProps85, _props);
   const {
     classNames,
     className,
@@ -38531,26 +38493,26 @@ var Stack = factory((_props, ref) => {
   const getStyles2 = useStyles({
     name: "Stack",
     props,
-    classes: classes30,
+    classes: classes31,
     className,
     style,
     classNames,
     styles,
     unstyled,
     vars,
-    varsResolver: varsResolver35
+    varsResolver: varsResolver36
   });
-  return /* @__PURE__ */ import_jsx_runtime170.jsx(Box, { ref, ...getStyles2("root"), variant, ...others });
+  return /* @__PURE__ */ import_jsx_runtime173.jsx(Box, { ref, ...getStyles2("root"), variant, ...others });
 });
-Stack.classes = classes30;
+Stack.classes = classes31;
 Stack.displayName = "@mantine/core/Stack";
 // node_modules/@mantine/core/esm/components/Title/Title.mjs
-var import_jsx_runtime172 = __toESM(require_jsx_runtime(), 1);
-var import_react215 = __toESM(require_react(), 1);
+var import_jsx_runtime175 = __toESM(require_jsx_runtime(), 1);
+var import_react218 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Title/get-title-size.mjs
-var import_react214 = __toESM(require_react(), 1);
-var import_jsx_runtime171 = __toESM(require_jsx_runtime(), 1);
+var import_react217 = __toESM(require_react(), 1);
+var import_jsx_runtime174 = __toESM(require_jsx_runtime(), 1);
 "use client";
 var headings3 = ["h1", "h2", "h3", "h4", "h5", "h6"];
 var sizes = ["xs", "sm", "md", "lg", "xl"];
@@ -38578,14 +38540,14 @@ function getTitleSize(order, size4) {
 
 // node_modules/@mantine/core/esm/components/Title/Title.module.css.mjs
 "use client";
-var classes31 = { root: "m_8a5d1357" };
+var classes32 = { root: "m_8a5d1357" };
 
 // node_modules/@mantine/core/esm/components/Title/Title.mjs
 "use client";
-var defaultProps84 = {
+var defaultProps86 = {
   order: 1
 };
-var varsResolver36 = createVarsResolver((_2, { order, size: size4, lineClamp, textWrap }) => {
+var varsResolver37 = createVarsResolver((_2, { order, size: size4, lineClamp, textWrap }) => {
   const sizeVariables = getTitleSize(order, size4);
   return {
     root: {
@@ -38598,7 +38560,7 @@ var varsResolver36 = createVarsResolver((_2, { order, size: size4, lineClamp, te
   };
 });
 var Title = factory((_props, ref) => {
-  const props = useProps("Title", defaultProps84, _props);
+  const props = useProps("Title", defaultProps86, _props);
   const {
     classNames,
     className,
@@ -38617,19 +38579,19 @@ var Title = factory((_props, ref) => {
   const getStyles2 = useStyles({
     name: "Title",
     props,
-    classes: classes31,
+    classes: classes32,
     className,
     style,
     classNames,
     styles,
     unstyled,
     vars,
-    varsResolver: varsResolver36
+    varsResolver: varsResolver37
   });
   if (![1, 2, 3, 4, 5, 6].includes(order)) {
     return null;
   }
-  return /* @__PURE__ */ import_jsx_runtime172.jsx(Box, {
+  return /* @__PURE__ */ import_jsx_runtime175.jsx(Box, {
     ...getStyles2("root"),
     component: `h${order}`,
     variant,
@@ -38639,15 +38601,15 @@ var Title = factory((_props, ref) => {
     ...others
   });
 });
-Title.classes = classes31;
+Title.classes = classes32;
 Title.displayName = "@mantine/core/Title";
 // node_modules/@mantine/core/esm/components/Tree/Tree.mjs
-var import_jsx_runtime176 = __toESM(require_jsx_runtime(), 1);
-var import_react220 = __toESM(require_react(), 1);
+var import_jsx_runtime179 = __toESM(require_jsx_runtime(), 1);
+var import_react223 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Tree/TreeNode.mjs
-var import_jsx_runtime173 = __toESM(require_jsx_runtime(), 1);
-var import_react216 = __toESM(require_react(), 1);
+var import_jsx_runtime176 = __toESM(require_jsx_runtime(), 1);
+var import_react219 = __toESM(require_react(), 1);
 "use client";
 function getValuesRange(anchor, value, flatValues) {
   if (!anchor || !value) {
@@ -38674,8 +38636,8 @@ function TreeNode({
   expandOnSpace,
   checkOnSpace
 }) {
-  const ref = import_react216.useRef(null);
-  const nested = (node2.children || []).map((child) => /* @__PURE__ */ import_jsx_runtime173.jsx(TreeNode, {
+  const ref = import_react219.useRef(null);
+  const nested = (node2.children || []).map((child) => /* @__PURE__ */ import_jsx_runtime176.jsx(TreeNode, {
     node: child,
     flatValues,
     getStyles: getStyles2,
@@ -38762,7 +38724,7 @@ function TreeNode({
     "data-value": node2.value,
     "data-hovered": controller.hoveredNode === node2.value || undefined
   };
-  return /* @__PURE__ */ import_jsx_runtime173.jsxs("li", {
+  return /* @__PURE__ */ import_jsx_runtime176.jsxs("li", {
     ...getStyles2("node", {
       style: { "--label-offset": `calc(var(--level-offset) * ${level - 1})` }
     }),
@@ -38792,15 +38754,15 @@ function TreeNode({
         expanded: controller.expandedState[node2.value] || false,
         hasChildren: Array.isArray(node2.children) && node2.children.length > 0,
         elementProps
-      }) : /* @__PURE__ */ import_jsx_runtime173.jsx("div", { ...elementProps, children: node2.label }),
-      controller.expandedState[node2.value] && nested.length > 0 && /* @__PURE__ */ import_jsx_runtime173.jsx("ul", { role: "group", ...getStyles2("subtree"), "data-level": level, children: nested })
+      }) : /* @__PURE__ */ import_jsx_runtime176.jsx("div", { ...elementProps, children: node2.label }),
+      controller.expandedState[node2.value] && nested.length > 0 && /* @__PURE__ */ import_jsx_runtime176.jsx("ul", { role: "group", ...getStyles2("subtree"), "data-level": level, children: nested })
     ]
   });
 }
 TreeNode.displayName = "@mantine/core/TreeNode";
 
 // node_modules/@mantine/core/esm/components/Tree/use-tree.mjs
-var import_react219 = __toESM(require_react(), 1);
+var import_react222 = __toESM(require_react(), 1);
 
 // node_modules/@mantine/core/esm/components/Tree/get-all-checked-nodes/get-all-checked-nodes.mjs
 "use client";
@@ -38883,8 +38845,8 @@ function getAllChildrenNodes(data) {
 }
 
 // node_modules/@mantine/core/esm/components/Tree/is-node-checked/is-node-checked.mjs
-var import_react217 = __toESM(require_react(), 1);
-var import_jsx_runtime174 = __toESM(require_jsx_runtime(), 1);
+var import_react220 = __toESM(require_react(), 1);
+var import_jsx_runtime177 = __toESM(require_jsx_runtime(), 1);
 "use client";
 function isNodeChecked(value, data, checkedState) {
   if (checkedState.length === 0) {
@@ -38899,8 +38861,8 @@ function isNodeChecked(value, data, checkedState) {
 var memoizedIsNodeChecked = memoize2(isNodeChecked);
 
 // node_modules/@mantine/core/esm/components/Tree/is-node-indeterminate/is-node-indeterminate.mjs
-var import_react218 = __toESM(require_react(), 1);
-var import_jsx_runtime175 = __toESM(require_jsx_runtime(), 1);
+var import_react221 = __toESM(require_react(), 1);
+var import_jsx_runtime178 = __toESM(require_jsx_runtime(), 1);
 "use client";
 function isNodeIndeterminate(value, data, checkedState) {
   if (checkedState.length === 0) {
@@ -38935,25 +38897,25 @@ function useTree({
   onNodeCollapse,
   onNodeExpand
 } = {}) {
-  const [data, setData] = import_react219.useState([]);
-  const [expandedState, setExpandedState] = import_react219.useState(initialExpandedState);
-  const [selectedState, setSelectedState] = import_react219.useState(initialSelectedState);
-  const [checkedState, setCheckedState] = import_react219.useState(initialCheckedState);
-  const [anchorNode, setAnchorNode] = import_react219.useState(null);
-  const [hoveredNode, setHoveredNode] = import_react219.useState(null);
-  const initialize = import_react219.useCallback((_data) => {
+  const [data, setData] = import_react222.useState([]);
+  const [expandedState, setExpandedState] = import_react222.useState(initialExpandedState);
+  const [selectedState, setSelectedState] = import_react222.useState(initialSelectedState);
+  const [checkedState, setCheckedState] = import_react222.useState(initialCheckedState);
+  const [anchorNode, setAnchorNode] = import_react222.useState(null);
+  const [hoveredNode, setHoveredNode] = import_react222.useState(null);
+  const initialize = import_react222.useCallback((_data) => {
     setExpandedState((current2) => getInitialTreeExpandedState(current2, _data, selectedState));
     setCheckedState((current2) => getInitialCheckedState(current2, _data));
     setData(_data);
   }, [selectedState, checkedState]);
-  const toggleExpanded = import_react219.useCallback((value) => {
+  const toggleExpanded = import_react222.useCallback((value) => {
     setExpandedState((current2) => {
       const nextState = { ...current2, [value]: !current2[value] };
       nextState[value] ? onNodeExpand?.(value) : onNodeCollapse?.(value);
       return nextState;
     });
   }, [onNodeCollapse, onNodeExpand]);
-  const collapse = import_react219.useCallback((value) => {
+  const collapse = import_react222.useCallback((value) => {
     setExpandedState((current2) => {
       if (current2[value] !== false) {
         onNodeCollapse?.(value);
@@ -38961,7 +38923,7 @@ function useTree({
       return { ...current2, [value]: false };
     });
   }, [onNodeCollapse]);
-  const expand = import_react219.useCallback((value) => {
+  const expand = import_react222.useCallback((value) => {
     setExpandedState((current2) => {
       if (current2[value] !== true) {
         onNodeExpand?.(value);
@@ -38969,7 +38931,7 @@ function useTree({
       return { ...current2, [value]: true };
     });
   }, [onNodeExpand]);
-  const expandAllNodes = import_react219.useCallback(() => {
+  const expandAllNodes = import_react222.useCallback(() => {
     setExpandedState((current2) => {
       const next2 = { ...current2 };
       Object.keys(next2).forEach((key) => {
@@ -38978,7 +38940,7 @@ function useTree({
       return next2;
     });
   }, []);
-  const collapseAllNodes = import_react219.useCallback(() => {
+  const collapseAllNodes = import_react222.useCallback(() => {
     setExpandedState((current2) => {
       const next2 = { ...current2 };
       Object.keys(next2).forEach((key) => {
@@ -38987,7 +38949,7 @@ function useTree({
       return next2;
     });
   }, []);
-  const toggleSelected = import_react219.useCallback((value) => setSelectedState((current2) => {
+  const toggleSelected = import_react222.useCallback((value) => setSelectedState((current2) => {
     if (!multiple) {
       if (current2.includes(value)) {
         setAnchorNode(null);
@@ -39003,30 +38965,30 @@ function useTree({
     setAnchorNode(value);
     return [...current2, value];
   }), []);
-  const select = import_react219.useCallback((value) => {
+  const select = import_react222.useCallback((value) => {
     setAnchorNode(value);
     setSelectedState((current2) => multiple ? current2.includes(value) ? current2 : [...current2, value] : [value]);
   }, []);
-  const deselect = import_react219.useCallback((value) => {
+  const deselect = import_react222.useCallback((value) => {
     anchorNode === value && setAnchorNode(null);
     setSelectedState((current2) => current2.filter((item) => item !== value));
   }, []);
-  const clearSelected = import_react219.useCallback(() => {
+  const clearSelected = import_react222.useCallback(() => {
     setSelectedState([]);
     setAnchorNode(null);
   }, []);
-  const checkNode = import_react219.useCallback((value) => {
+  const checkNode = import_react222.useCallback((value) => {
     const checkedNodes = getChildrenNodesValues(value, data);
     setCheckedState((current2) => Array.from(/* @__PURE__ */ new Set([...current2, ...checkedNodes])));
   }, [data]);
-  const uncheckNode = import_react219.useCallback((value) => {
+  const uncheckNode = import_react222.useCallback((value) => {
     const checkedNodes = getChildrenNodesValues(value, data);
     setCheckedState((current2) => current2.filter((item) => !checkedNodes.includes(item)));
   }, [data]);
-  const checkAllNodes = import_react219.useCallback(() => {
+  const checkAllNodes = import_react222.useCallback(() => {
     setCheckedState(() => getAllChildrenNodes(data));
   }, [data]);
-  const uncheckAllNodes = import_react219.useCallback(() => {
+  const uncheckAllNodes = import_react222.useCallback(() => {
     setCheckedState([]);
   }, []);
   const getCheckedNodes = () => getAllCheckedNodes(data, checkedState).result;
@@ -39065,7 +39027,7 @@ function useTree({
 
 // node_modules/@mantine/core/esm/components/Tree/Tree.module.css.mjs
 "use client";
-var classes32 = { root: "m_f698e191", subtree: "m_75f3ecf", node: "m_f6970eb1", label: "m_dc283425" };
+var classes33 = { root: "m_f698e191", subtree: "m_75f3ecf", node: "m_f6970eb1", label: "m_dc283425" };
 
 // node_modules/@mantine/core/esm/components/Tree/Tree.mjs
 "use client";
@@ -39078,18 +39040,18 @@ function getFlatValues(data) {
     return acc;
   }, []);
 }
-var defaultProps85 = {
+var defaultProps87 = {
   expandOnClick: true,
   allowRangeSelection: true,
   expandOnSpace: true
 };
-var varsResolver37 = createVarsResolver((_theme, { levelOffset }) => ({
+var varsResolver38 = createVarsResolver((_theme, { levelOffset }) => ({
   root: {
     "--level-offset": getSpacing(levelOffset)
   }
 }));
 var Tree = factory((_props, ref) => {
-  const props = useProps("Tree", defaultProps85, _props);
+  const props = useProps("Tree", defaultProps87, _props);
   const {
     classNames,
     className,
@@ -39113,7 +39075,7 @@ var Tree = factory((_props, ref) => {
   const controller = tree || defaultController;
   const getStyles2 = useStyles({
     name: "Tree",
-    classes: classes32,
+    classes: classes33,
     props,
     className,
     style,
@@ -39121,15 +39083,15 @@ var Tree = factory((_props, ref) => {
     styles,
     unstyled,
     vars,
-    varsResolver: varsResolver37
+    varsResolver: varsResolver38
   });
   const clickOutsideRef = useClickOutside(() => clearSelectionOnOutsideClick && controller.clearSelected());
   const mergedRef = useMergedRef(ref, clickOutsideRef);
-  const flatValues = import_react220.useMemo(() => getFlatValues(data), [data]);
-  import_react220.useEffect(() => {
+  const flatValues = import_react223.useMemo(() => getFlatValues(data), [data]);
+  import_react223.useEffect(() => {
     controller.initialize(data);
   }, [data]);
-  const nodes = data.map((node2, index3) => /* @__PURE__ */ import_jsx_runtime176.jsx(TreeNode, {
+  const nodes = data.map((node2, index3) => /* @__PURE__ */ import_jsx_runtime179.jsx(TreeNode, {
     node: node2,
     getStyles: getStyles2,
     rootIndex: index3,
@@ -39142,7 +39104,7 @@ var Tree = factory((_props, ref) => {
     expandOnSpace,
     checkOnSpace
   }, node2.value));
-  return /* @__PURE__ */ import_jsx_runtime176.jsx(Box, {
+  return /* @__PURE__ */ import_jsx_runtime179.jsx(Box, {
     component: "ul",
     ref: mergedRef,
     ...getStyles2("root"),
@@ -39154,7 +39116,71 @@ var Tree = factory((_props, ref) => {
   });
 });
 Tree.displayName = "@mantine/core/Tree";
-Tree.classes = classes32;
+Tree.classes = classes33;
+// src/studio-adaptor/layoutMapingValidation.ts
+function layoutMappingValidation(layoutMap, doc) {
+  const cleanLayoutMap = JSON.parse(JSON.stringify(layoutMap));
+  const report = {
+    removedLayoutIds: [],
+    removedVariables: [],
+    removedDependents: [],
+    removedVariableValues: []
+  };
+  const existingLayoutIds = new Set(doc.layouts.map((layout) => layout.id));
+  const existingVariableIds = new Set(doc.variables.map((variable) => variable.id));
+  cleanLayoutMap.layoutIds = cleanLayoutMap.layoutIds.filter((layoutId) => {
+    const exists = existingLayoutIds.has(layoutId);
+    if (!exists) {
+      report.removedLayoutIds.push(layoutId);
+    }
+    return exists;
+  });
+  cleanLayoutMap.variables = cleanLayoutMap.variables.filter((imageVariable) => {
+    console.log("ADGA");
+    const imageVariableExists = imageVariable.id ? existingVariableIds.has(imageVariable.id) : false;
+    if (!imageVariableExists && imageVariable.id) {
+      report.removedVariables.push(imageVariable.id);
+      return false;
+    }
+    processImageVariableDependentGroups(imageVariable, existingVariableIds, report);
+    return imageVariableExists || !imageVariable.id;
+  });
+  return {
+    cleanLayoutMap,
+    report
+  };
+}
+function processImageVariableDependentGroups(imageVariable, existingVariableIds, report) {
+  imageVariable.dependentGroup = imageVariable.dependentGroup.filter((group, groupIndex) => {
+    group.dependents = group.dependents.filter((dependent) => {
+      const dependentExists = existingVariableIds.has(dependent.variableId);
+      if (!dependentExists) {
+        report.removedDependents.push({
+          variableId: dependent.variableId,
+          imageVariableId: imageVariable.id || "unknown"
+        });
+      }
+      return dependentExists;
+    });
+    group.variableValue = group.variableValue.filter((value) => {
+      if (typeof value === "string") {
+        return true;
+      }
+      const variableValue = value;
+      const valueExists = variableValue.id ? existingVariableIds.has(variableValue.id) : true;
+      if (!valueExists && variableValue.id) {
+        report.removedVariableValues.push({
+          value: variableValue.id,
+          imageVariableId: imageVariable.id || "unknown",
+          dependentGroupIndex: groupIndex
+        });
+      }
+      return valueExists;
+    });
+    return group.dependents.length > 0 || group.variableValue.length > 0;
+  });
+}
+
 // node_modules/@tabler/icons-react/dist/esm/tabler-icons-react.mjs
 init_IconAbc();
 init_IconArrowsTransferUpDown();
@@ -39162,6 +39188,7 @@ init_IconBug();
 init_IconChevronDown();
 init_IconCopy();
 init_IconDownload();
+init_IconExternalLink();
 init_IconGripVertical();
 init_IconInfoCircle();
 init_IconList();
@@ -39174,13 +39201,13 @@ init_IconCaretDownFilled();
 init_IconTrashFilled();
 
 // src/components/LayoutMappingModal/AddMappingImageVariableModal.tsx
-var import_react222 = __toESM(require_react(), 1);
+var import_react225 = __toESM(require_react(), 1);
 var jsx_dev_runtime = __toESM(require_jsx_dev_runtime(), 1);
 var AddMappingImageVariableModal = ({
   currentMapConfig
 }) => {
   const { state, effects } = useAppStore();
-  const possibleVariableValues = import_react222.useMemo(() => {
+  const possibleVariableValues = import_react225.useMemo(() => {
     const allImageVariables = state.studio.document.variables.filter((variable) => variable.type === "image").map((variable) => ({
       value: variable.id,
       label: variable.name,
@@ -39259,10 +39286,10 @@ var AddDependentModal = () => {
     const selectedVariables = state.modal.dependentModal.currentSelectedVariables;
     const imageVariableId = state.modal.dependentModal.currentImageVariableId;
     const mapId = state.modal.currentSelectedMapId;
-    if (!mapId)
+    if (!mapId || !imageVariableId) {
+      raiseError2(new Error(`One of these are null mapId:${mapId} or imageVariableId:${imageVariableId}`));
       return;
-    if (!imageVariableId)
-      return;
+    }
     const currentGroupIndex = state.modal.dependentModal.currentGroupIndex;
     const dependents = selectedVariables.map((variableId) => {
       const variable = getVariableById(variableId);
@@ -39342,10 +39369,10 @@ var AddDependentModal = () => {
 };
 
 // src/components/LayoutMappingModal/LayoutConfigSelection.tsx
-var import_react230 = __toESM(require_react(), 1);
+var import_react233 = __toESM(require_react(), 1);
 
 // src/components/LayoutMappingModal/LayoutMultiSelect.tsx
-var import_react223 = __toESM(require_react(), 1);
+var import_react226 = __toESM(require_react(), 1);
 var jsx_dev_runtime3 = __toESM(require_jsx_dev_runtime(), 1);
 var buildTreeData = (documentLayouts, selectedLayoutIds, disabledLayoutIds) => {
   const layoutsByParent = {};
@@ -39372,8 +39399,8 @@ var LayoutMultiSelect = ({
   showButton
 }) => {
   const { state, effects: events } = useAppStore();
-  const [drawerOpened, setDrawerOpened] = import_react223.useState(false);
-  const [selectedLayouts, setSelectedLayouts] = import_react223.useState(state.studio.layoutImageMapping.find((lc) => lc.id === layoutConfig.id)?.layoutIds || []);
+  const [drawerOpened, setDrawerOpened] = import_react226.useState(false);
+  const [selectedLayouts, setSelectedLayouts] = import_react226.useState(state.studio.layoutImageMapping.find((lc) => lc.id === layoutConfig.id)?.layoutIds || []);
   const assignedToOtherMaps = state.studio.layoutImageMapping.filter((map) => map.id !== layoutConfig.id).flatMap((map) => map.layoutIds);
   const handleMultiSelectChange = (updateLayoutIds) => {
     events.studio.layoutImageMapping.setLayoutIds({
@@ -39530,19 +39557,19 @@ var LayoutMultiSelect = ({
 };
 
 // src/components/LayoutMappingModal/VariableCard.tsx
-var import_react229 = __toESM(require_react(), 1);
+var import_react232 = __toESM(require_react(), 1);
 
 // node_modules/@dnd-kit/core/dist/core.esm.js
-var import_react226 = __toESM(require_react(), 1);
+var import_react229 = __toESM(require_react(), 1);
 var import_react_dom5 = __toESM(require_react_dom(), 1);
 
 // node_modules/@dnd-kit/utilities/dist/utilities.esm.js
-var import_react224 = __toESM(require_react(), 1);
+var import_react227 = __toESM(require_react(), 1);
 function useCombinedRefs() {
   for (var _len = arguments.length, refs = new Array(_len), _key = 0;_key < _len; _key++) {
     refs[_key] = arguments[_key];
   }
-  return import_react224.useMemo(() => (node2) => {
+  return import_react227.useMemo(() => (node2) => {
     refs.forEach((ref) => ref(node2));
   }, refs);
 }
@@ -39600,13 +39627,13 @@ function getOwnerDocument(target) {
   }
   return document;
 }
-var useIsomorphicLayoutEffect2 = canUseDOM ? import_react224.useLayoutEffect : import_react224.useEffect;
+var useIsomorphicLayoutEffect2 = canUseDOM ? import_react227.useLayoutEffect : import_react227.useEffect;
 function useEvent(handler) {
-  const handlerRef = import_react224.useRef(handler);
+  const handlerRef = import_react227.useRef(handler);
   useIsomorphicLayoutEffect2(() => {
     handlerRef.current = handler;
   });
-  return import_react224.useCallback(function() {
+  return import_react227.useCallback(function() {
     for (var _len = arguments.length, args = new Array(_len), _key = 0;_key < _len; _key++) {
       args[_key] = arguments[_key];
     }
@@ -39614,11 +39641,11 @@ function useEvent(handler) {
   }, []);
 }
 function useInterval() {
-  const intervalRef = import_react224.useRef(null);
-  const set2 = import_react224.useCallback((listener, duration) => {
+  const intervalRef = import_react227.useRef(null);
+  const set2 = import_react227.useCallback((listener, duration) => {
     intervalRef.current = setInterval(listener, duration);
   }, []);
-  const clear = import_react224.useCallback(() => {
+  const clear = import_react227.useCallback(() => {
     if (intervalRef.current !== null) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
@@ -39630,7 +39657,7 @@ function useLatestValue(value, dependencies) {
   if (dependencies === undefined) {
     dependencies = [value];
   }
-  const valueRef = import_react224.useRef(value);
+  const valueRef = import_react227.useRef(value);
   useIsomorphicLayoutEffect2(() => {
     if (valueRef.current !== value) {
       valueRef.current = value;
@@ -39639,8 +39666,8 @@ function useLatestValue(value, dependencies) {
   return valueRef;
 }
 function useLazyMemo(callback, dependencies) {
-  const valueRef = import_react224.useRef();
-  return import_react224.useMemo(() => {
+  const valueRef = import_react227.useRef();
+  return import_react227.useMemo(() => {
     const newValue = callback(valueRef.current);
     valueRef.current = newValue;
     return newValue;
@@ -39648,8 +39675,8 @@ function useLazyMemo(callback, dependencies) {
 }
 function useNodeRef(onChange) {
   const onChangeHandler = useEvent(onChange);
-  const node2 = import_react224.useRef(null);
-  const setNodeRef = import_react224.useCallback((element) => {
+  const node2 = import_react227.useRef(null);
+  const setNodeRef = import_react227.useCallback((element) => {
     if (element !== node2.current) {
       onChangeHandler == null || onChangeHandler(element, node2.current);
     }
@@ -39658,15 +39685,15 @@ function useNodeRef(onChange) {
   return [node2, setNodeRef];
 }
 function usePrevious2(value) {
-  const ref = import_react224.useRef();
-  import_react224.useEffect(() => {
+  const ref = import_react227.useRef();
+  import_react227.useEffect(() => {
     ref.current = value;
   }, [value]);
   return ref.current;
 }
 var ids = {};
 function useUniqueId(prefix2, value) {
-  return import_react224.useMemo(() => {
+  return import_react227.useMemo(() => {
     if (value) {
       return value;
     }
@@ -39800,7 +39827,7 @@ function findFirstFocusableNode(element) {
 }
 
 // node_modules/@dnd-kit/accessibility/dist/accessibility.esm.js
-var import_react225 = __toESM(require_react(), 1);
+var import_react228 = __toESM(require_react(), 1);
 var hiddenStyles = {
   display: "none"
 };
@@ -39809,7 +39836,7 @@ function HiddenText(_ref) {
     id,
     value
   } = _ref;
-  return import_react225.default.createElement("div", {
+  return import_react228.default.createElement("div", {
     id,
     style: hiddenStyles
   }, value);
@@ -39834,7 +39861,7 @@ function LiveRegion(_ref) {
     clipPath: "inset(100%)",
     whiteSpace: "nowrap"
   };
-  return import_react225.default.createElement("div", {
+  return import_react228.default.createElement("div", {
     id,
     style: visuallyHidden,
     role: "status",
@@ -39843,8 +39870,8 @@ function LiveRegion(_ref) {
   }, announcement);
 }
 function useAnnouncement() {
-  const [announcement, setAnnouncement] = import_react225.useState("");
-  const announce = import_react225.useCallback((value) => {
+  const [announcement, setAnnouncement] = import_react228.useState("");
+  const announce = import_react228.useCallback((value) => {
     if (value != null) {
       setAnnouncement(value);
     }
@@ -39856,10 +39883,10 @@ function useAnnouncement() {
 }
 
 // node_modules/@dnd-kit/core/dist/core.esm.js
-var DndMonitorContext = /* @__PURE__ */ import_react226.createContext(null);
+var DndMonitorContext = /* @__PURE__ */ import_react229.createContext(null);
 function useDndMonitor(listener) {
-  const registerListener = import_react226.useContext(DndMonitorContext);
-  import_react226.useEffect(() => {
+  const registerListener = import_react229.useContext(DndMonitorContext);
+  import_react229.useEffect(() => {
     if (!registerListener) {
       throw new Error("useDndMonitor must be used within a children of <DndContext>");
     }
@@ -39868,12 +39895,12 @@ function useDndMonitor(listener) {
   }, [listener, registerListener]);
 }
 function useDndMonitorProvider() {
-  const [listeners] = import_react226.useState(() => new Set);
-  const registerListener = import_react226.useCallback((listener) => {
+  const [listeners] = import_react229.useState(() => new Set);
+  const registerListener = import_react229.useCallback((listener) => {
     listeners.add(listener);
     return () => listeners.delete(listener);
   }, [listeners]);
-  const dispatch = import_react226.useCallback((_ref) => {
+  const dispatch = import_react229.useCallback((_ref) => {
     let {
       type,
       event
@@ -39938,11 +39965,11 @@ function Accessibility(_ref) {
     announcement
   } = useAnnouncement();
   const liveRegionId = useUniqueId("DndLiveRegion");
-  const [mounted, setMounted] = import_react226.useState(false);
-  import_react226.useEffect(() => {
+  const [mounted, setMounted] = import_react229.useState(false);
+  import_react229.useEffect(() => {
     setMounted(true);
   }, []);
-  useDndMonitor(import_react226.useMemo(() => ({
+  useDndMonitor(import_react229.useMemo(() => ({
     onDragStart(_ref2) {
       let {
         active
@@ -39997,10 +40024,10 @@ function Accessibility(_ref) {
   if (!mounted) {
     return null;
   }
-  const markup = import_react226.default.createElement(import_react226.default.Fragment, null, import_react226.default.createElement(HiddenText, {
+  const markup = import_react229.default.createElement(import_react229.default.Fragment, null, import_react229.default.createElement(HiddenText, {
     id: hiddenTextDescribedById,
     value: screenReaderInstructions.draggable
-  }), import_react226.default.createElement(LiveRegion, {
+  }), import_react229.default.createElement(LiveRegion, {
     id: liveRegionId,
     announcement
   }));
@@ -40020,7 +40047,7 @@ var Action;
 function noop3() {
 }
 function useSensor(sensor, options) {
-  return import_react226.useMemo(() => ({
+  return import_react229.useMemo(() => ({
     sensor,
     options: options != null ? options : {}
   }), [sensor, options]);
@@ -40029,7 +40056,7 @@ function useSensors() {
   for (var _len = arguments.length, sensors = new Array(_len), _key = 0;_key < _len; _key++) {
     sensors[_key] = arguments[_key];
   }
-  return import_react226.useMemo(() => [...sensors].filter((sensor) => sensor != null), [...sensors]);
+  return import_react229.useMemo(() => [...sensors].filter((sensor) => sensor != null), [...sensors]);
 }
 var defaultCoordinates = /* @__PURE__ */ Object.freeze({
   x: 0,
@@ -41274,15 +41301,15 @@ function useAutoScroller(_ref) {
     disabled: !enabled
   });
   const [setAutoScrollInterval, clearAutoScrollInterval] = useInterval();
-  const scrollSpeed = import_react226.useRef({
+  const scrollSpeed = import_react229.useRef({
     x: 0,
     y: 0
   });
-  const scrollDirection = import_react226.useRef({
+  const scrollDirection = import_react229.useRef({
     x: 0,
     y: 0
   });
-  const rect = import_react226.useMemo(() => {
+  const rect = import_react229.useMemo(() => {
     switch (activator) {
       case AutoScrollActivator.Pointer:
         return pointerCoordinates ? {
@@ -41295,8 +41322,8 @@ function useAutoScroller(_ref) {
         return draggingRect;
     }
   }, [activator, draggingRect, pointerCoordinates]);
-  const scrollContainerRef = import_react226.useRef(null);
-  const autoScroll = import_react226.useCallback(() => {
+  const scrollContainerRef = import_react229.useRef(null);
+  const autoScroll = import_react229.useCallback(() => {
     const scrollContainer = scrollContainerRef.current;
     if (!scrollContainer) {
       return;
@@ -41305,8 +41332,8 @@ function useAutoScroller(_ref) {
     const scrollTop = scrollSpeed.current.y * scrollDirection.current.y;
     scrollContainer.scrollBy(scrollLeft, scrollTop);
   }, []);
-  const sortedScrollableAncestors = import_react226.useMemo(() => order === TraversalOrder.TreeOrder ? [...scrollableAncestors].reverse() : scrollableAncestors, [order, scrollableAncestors]);
-  import_react226.useEffect(() => {
+  const sortedScrollableAncestors = import_react229.useMemo(() => order === TraversalOrder.TreeOrder ? [...scrollableAncestors].reverse() : scrollableAncestors, [order, scrollableAncestors]);
+  import_react229.useEffect(() => {
     if (!enabled || !scrollableAncestors.length || !rect) {
       clearAutoScrollInterval();
       return;
@@ -41412,7 +41439,7 @@ function useCachedNode(draggableNodes, id) {
   }, [node2, id]);
 }
 function useCombineActivators(sensors, getSyntheticHandler) {
-  return import_react226.useMemo(() => sensors.reduce((accumulator, sensor) => {
+  return import_react229.useMemo(() => sensors.reduce((accumulator, sensor) => {
     const {
       sensor: Sensor
     } = sensor;
@@ -41440,16 +41467,16 @@ function useDroppableMeasuring(containers, _ref) {
     dependencies,
     config
   } = _ref;
-  const [queue, setQueue] = import_react226.useState(null);
+  const [queue, setQueue] = import_react229.useState(null);
   const {
     frequency,
     measure,
     strategy
   } = config;
-  const containersRef = import_react226.useRef(containers);
+  const containersRef = import_react229.useRef(containers);
   const disabled = isDisabled();
   const disabledRef = useLatestValue(disabled);
-  const measureDroppableContainers = import_react226.useCallback(function(ids2) {
+  const measureDroppableContainers = import_react229.useCallback(function(ids2) {
     if (ids2 === undefined) {
       ids2 = [];
     }
@@ -41463,7 +41490,7 @@ function useDroppableMeasuring(containers, _ref) {
       return value.concat(ids2.filter((id) => !value.includes(id)));
     });
   }, [disabledRef]);
-  const timeoutId = import_react226.useRef(null);
+  const timeoutId = import_react229.useRef(null);
   const droppableRects = useLazyMemo((previousValue) => {
     if (disabled && !dragging) {
       return defaultValue;
@@ -41489,21 +41516,21 @@ function useDroppableMeasuring(containers, _ref) {
     }
     return previousValue;
   }, [containers, queue, dragging, disabled, measure]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     containersRef.current = containers;
   }, [containers]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     if (disabled) {
       return;
     }
     measureDroppableContainers();
   }, [dragging, disabled]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     if (queue && queue.length > 0) {
       setQueue(null);
     }
   }, [JSON.stringify(queue)]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     if (disabled || typeof frequency !== "number" || timeoutId.current !== null) {
       return;
     }
@@ -41548,7 +41575,7 @@ function useMutationObserver(_ref) {
     disabled
   } = _ref;
   const handleMutations = useEvent(callback);
-  const mutationObserver = import_react226.useMemo(() => {
+  const mutationObserver = import_react229.useMemo(() => {
     if (disabled || typeof window === "undefined" || typeof window.MutationObserver === "undefined") {
       return;
     }
@@ -41557,7 +41584,7 @@ function useMutationObserver(_ref) {
     } = window;
     return new MutationObserver2(handleMutations);
   }, [handleMutations, disabled]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     return () => mutationObserver == null ? undefined : mutationObserver.disconnect();
   }, [mutationObserver]);
   return mutationObserver;
@@ -41568,7 +41595,7 @@ function useResizeObserver2(_ref) {
     disabled
   } = _ref;
   const handleResize = useEvent(callback);
-  const resizeObserver = import_react226.useMemo(() => {
+  const resizeObserver = import_react229.useMemo(() => {
     if (disabled || typeof window === "undefined" || typeof window.ResizeObserver === "undefined") {
       return;
     }
@@ -41577,7 +41604,7 @@ function useResizeObserver2(_ref) {
     } = window;
     return new ResizeObserver2(handleResize);
   }, [disabled]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     return () => resizeObserver == null ? undefined : resizeObserver.disconnect();
   }, [resizeObserver]);
   return resizeObserver;
@@ -41589,7 +41616,7 @@ function useRect(element, measure, fallbackRect) {
   if (measure === undefined) {
     measure = defaultMeasure;
   }
-  const [rect, setRect] = import_react226.useState(null);
+  const [rect, setRect] = import_react229.useState(null);
   function measureRect() {
     setRect((currentRect) => {
       if (!element) {
@@ -41647,7 +41674,7 @@ function useRectDelta(rect) {
 }
 var defaultValue$1 = [];
 function useScrollableAncestors(node2) {
-  const previousNode = import_react226.useRef(node2);
+  const previousNode = import_react229.useRef(node2);
   const ancestors = useLazyMemo((previousValue) => {
     if (!node2) {
       return defaultValue$1;
@@ -41657,15 +41684,15 @@ function useScrollableAncestors(node2) {
     }
     return getScrollableAncestors(node2);
   }, [node2]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     previousNode.current = node2;
   }, [node2]);
   return ancestors;
 }
 function useScrollOffsets(elements) {
-  const [scrollCoordinates, setScrollCoordinates] = import_react226.useState(null);
-  const prevElements = import_react226.useRef(elements);
-  const handleScroll2 = import_react226.useCallback((event) => {
+  const [scrollCoordinates, setScrollCoordinates] = import_react229.useState(null);
+  const prevElements = import_react229.useRef(elements);
+  const handleScroll2 = import_react229.useCallback((event) => {
     const scrollingElement = getScrollableElement(event.target);
     if (!scrollingElement) {
       return;
@@ -41678,7 +41705,7 @@ function useScrollOffsets(elements) {
       return new Map(scrollCoordinates2);
     });
   }, []);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     const previousElements = prevElements.current;
     if (elements !== previousElements) {
       cleanup(previousElements);
@@ -41706,7 +41733,7 @@ function useScrollOffsets(elements) {
       });
     }
   }, [handleScroll2, elements]);
-  return import_react226.useMemo(() => {
+  return import_react229.useMemo(() => {
     if (elements.length) {
       return scrollCoordinates ? Array.from(scrollCoordinates.values()).reduce((acc, coordinates) => add(acc, coordinates), defaultCoordinates) : getScrollOffsets(elements);
     }
@@ -41717,11 +41744,11 @@ function useScrollOffsetsDelta(scrollOffsets, dependencies) {
   if (dependencies === undefined) {
     dependencies = [];
   }
-  const initialScrollOffsets = import_react226.useRef(null);
-  import_react226.useEffect(() => {
+  const initialScrollOffsets = import_react229.useRef(null);
+  import_react229.useEffect(() => {
     initialScrollOffsets.current = null;
   }, dependencies);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     const hasScrollOffsets = scrollOffsets !== defaultCoordinates;
     if (hasScrollOffsets && !initialScrollOffsets.current) {
       initialScrollOffsets.current = scrollOffsets;
@@ -41733,7 +41760,7 @@ function useScrollOffsetsDelta(scrollOffsets, dependencies) {
   return initialScrollOffsets.current ? subtract(scrollOffsets, initialScrollOffsets.current) : defaultCoordinates;
 }
 function useSensorSetup(sensors) {
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     if (!canUseDOM) {
       return;
     }
@@ -41756,7 +41783,7 @@ function useSensorSetup(sensors) {
   }));
 }
 function useSyntheticListeners(listeners, id) {
-  return import_react226.useMemo(() => {
+  return import_react229.useMemo(() => {
     return listeners.reduce((acc, _ref) => {
       let {
         eventName,
@@ -41770,7 +41797,7 @@ function useSyntheticListeners(listeners, id) {
   }, [listeners, id]);
 }
 function useWindowRect(element) {
-  return import_react226.useMemo(() => element ? getWindowClientRect(element) : null, [element]);
+  return import_react229.useMemo(() => element ? getWindowClientRect(element) : null, [element]);
 }
 var defaultValue$2 = [];
 function useRects(elements, measure) {
@@ -41779,7 +41806,7 @@ function useRects(elements, measure) {
   }
   const [firstElement] = elements;
   const windowRect = useWindowRect(firstElement ? getWindow2(firstElement) : null);
-  const [rects, setRects] = import_react226.useState(defaultValue$2);
+  const [rects, setRects] = import_react229.useState(defaultValue$2);
   function measureRects() {
     setRects(() => {
       if (!elements.length) {
@@ -41812,8 +41839,8 @@ function useDragOverlayMeasuring(_ref) {
   let {
     measure
   } = _ref;
-  const [rect, setRect] = import_react226.useState(null);
-  const handleResize = import_react226.useCallback((entries) => {
+  const [rect, setRect] = import_react229.useState(null);
+  const handleResize = import_react229.useCallback((entries) => {
     for (const {
       target
     } of entries) {
@@ -41833,7 +41860,7 @@ function useDragOverlayMeasuring(_ref) {
   const resizeObserver = useResizeObserver2({
     callback: handleResize
   });
-  const handleNodeChange = import_react226.useCallback((element) => {
+  const handleNodeChange = import_react229.useCallback((element) => {
     const node2 = getMeasurableNode(element);
     resizeObserver == null || resizeObserver.disconnect();
     if (node2) {
@@ -41842,7 +41869,7 @@ function useDragOverlayMeasuring(_ref) {
     setRect(node2 ? measure(node2) : null);
   }, [measure, resizeObserver]);
   const [nodeRef, setRef] = useNodeRef(handleNodeChange);
-  return import_react226.useMemo(() => ({
+  return import_react229.useMemo(() => ({
     nodeRef,
     rect,
     setRef
@@ -41931,8 +41958,8 @@ var defaultInternalContext = {
   over: null,
   measureDroppableContainers: noop3
 };
-var InternalContext = /* @__PURE__ */ import_react226.createContext(defaultInternalContext);
-var PublicContext = /* @__PURE__ */ import_react226.createContext(defaultPublicContext);
+var InternalContext = /* @__PURE__ */ import_react229.createContext(defaultInternalContext);
+var PublicContext = /* @__PURE__ */ import_react229.createContext(defaultPublicContext);
 function getInitialState() {
   return {
     draggable: {
@@ -42066,10 +42093,10 @@ function RestoreFocus(_ref) {
     active,
     activatorEvent,
     draggableNodes
-  } = import_react226.useContext(InternalContext);
+  } = import_react229.useContext(InternalContext);
   const previousActivatorEvent = usePrevious2(activatorEvent);
   const previousActiveId = usePrevious2(active == null ? undefined : active.id);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     if (disabled) {
       return;
     }
@@ -42120,7 +42147,7 @@ function applyModifiers(modifiers, _ref) {
   }, transform) : transform;
 }
 function useMeasuringConfiguration(config) {
-  return import_react226.useMemo(() => ({
+  return import_react229.useMemo(() => ({
     draggable: {
       ...defaultMeasuringConfiguration.draggable,
       ...config == null ? undefined : config.draggable
@@ -42142,7 +42169,7 @@ function useLayoutShiftScrollCompensation(_ref) {
     initialRect,
     config = true
   } = _ref;
-  const initialized = import_react226.useRef(false);
+  const initialized = import_react229.useRef(false);
   const {
     x: x2,
     y: y2
@@ -42183,7 +42210,7 @@ function useLayoutShiftScrollCompensation(_ref) {
     }
   }, [activeNode, x2, y2, initialRect, measure]);
 }
-var ActiveDraggableContext = /* @__PURE__ */ import_react226.createContext({
+var ActiveDraggableContext = /* @__PURE__ */ import_react229.createContext({
   ...defaultCoordinates,
   scaleX: 1,
   scaleY: 1
@@ -42194,7 +42221,7 @@ var Status;
   Status2[Status2["Initializing"] = 1] = "Initializing";
   Status2[Status2["Initialized"] = 2] = "Initialized";
 })(Status || (Status = {}));
-var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref) {
+var DndContext = /* @__PURE__ */ import_react229.memo(function DndContext2(_ref) {
   var _sensorContext$curren, _dragOverlay$nodeRef$, _dragOverlay$rect, _over$rect;
   let {
     id,
@@ -42207,10 +42234,10 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
     modifiers,
     ...props
   } = _ref;
-  const store = import_react226.useReducer(reducer, undefined, getInitialState);
+  const store = import_react229.useReducer(reducer, undefined, getInitialState);
   const [state, dispatch] = store;
   const [dispatchMonitorEvent, registerMonitorListener] = useDndMonitorProvider();
-  const [status, setStatus] = import_react226.useState(Status.Uninitialized);
+  const [status, setStatus] = import_react229.useState(Status.Uninitialized);
   const isInitialized = status === Status.Initialized;
   const {
     draggable: {
@@ -42223,11 +42250,11 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
     }
   } = state;
   const node2 = activeId != null ? draggableNodes.get(activeId) : null;
-  const activeRects = import_react226.useRef({
+  const activeRects = import_react229.useRef({
     initial: null,
     translated: null
   });
-  const active = import_react226.useMemo(() => {
+  const active = import_react229.useMemo(() => {
     var _node$data;
     return activeId != null ? {
       id: activeId,
@@ -42235,12 +42262,12 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
       rect: activeRects
     } : null;
   }, [activeId, node2]);
-  const activeRef = import_react226.useRef(null);
-  const [activeSensor, setActiveSensor] = import_react226.useState(null);
-  const [activatorEvent, setActivatorEvent] = import_react226.useState(null);
+  const activeRef = import_react229.useRef(null);
+  const [activeSensor, setActiveSensor] = import_react229.useState(null);
+  const [activatorEvent, setActivatorEvent] = import_react229.useState(null);
   const latestProps = useLatestValue(props, Object.values(props));
   const draggableDescribedById = useUniqueId("DndDescribedBy", id);
-  const enabledDroppableContainers = import_react226.useMemo(() => droppableContainers.getEnabled(), [droppableContainers]);
+  const enabledDroppableContainers = import_react229.useMemo(() => droppableContainers.getEnabled(), [droppableContainers]);
   const measuringConfiguration = useMeasuringConfiguration(measuring);
   const {
     droppableRects,
@@ -42252,7 +42279,7 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
     config: measuringConfiguration.droppable
   });
   const activeNode = useCachedNode(draggableNodes, activeId);
-  const activationCoordinates = import_react226.useMemo(() => activatorEvent ? getEventCoordinates(activatorEvent) : null, [activatorEvent]);
+  const activationCoordinates = import_react229.useMemo(() => activatorEvent ? getEventCoordinates(activatorEvent) : null, [activatorEvent]);
   const autoScrollOptions = getAutoScrollerOptions();
   const initialActiveNodeRect = useInitialRect(activeNode, measuringConfiguration.draggable.measure);
   useLayoutShiftScrollCompensation({
@@ -42263,7 +42290,7 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
   });
   const activeNodeRect = useRect(activeNode, measuringConfiguration.draggable.measure, initialActiveNodeRect);
   const containerNodeRect = useRect(activeNode ? activeNode.parentElement : null);
-  const sensorContext = import_react226.useRef({
+  const sensorContext = import_react229.useRef({
     activatorEvent: null,
     active: null,
     activeNode,
@@ -42321,11 +42348,11 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
     pointerCoordinates
   }) : null;
   const overId = getFirstCollision(collisions, "id");
-  const [over, setOver] = import_react226.useState(null);
+  const [over, setOver] = import_react229.useState(null);
   const appliedTranslate = usesDragOverlay ? modifiedTranslate : add(modifiedTranslate, activeNodeScrollDelta);
   const transform = adjustScale(appliedTranslate, (_over$rect = over == null ? undefined : over.rect) != null ? _over$rect : null, activeNodeRect);
-  const activeSensorRef = import_react226.useRef(null);
-  const instantiateSensor = import_react226.useCallback((event, _ref2) => {
+  const activeSensorRef = import_react229.useRef(null);
+  const instantiateSensor = import_react229.useCallback((event, _ref2) => {
     let {
       sensor: Sensor,
       options
@@ -42477,7 +42504,7 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
       };
     }
   }, [draggableNodes]);
-  const bindActivatorToSensorInstantiator = import_react226.useCallback((handler, sensor) => {
+  const bindActivatorToSensorInstantiator = import_react229.useCallback((handler, sensor) => {
     return (event, active2) => {
       const nativeEvent = event.nativeEvent;
       const activeDraggableNode = draggableNodes.get(active2);
@@ -42504,7 +42531,7 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
       setStatus(Status.Initialized);
     }
   }, [activeNodeRect, status]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     const {
       onDragMove
     } = latestProps.current;
@@ -42535,7 +42562,7 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
       });
     });
   }, [scrollAdjustedTranslate.x, scrollAdjustedTranslate.y]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     const {
       active: active2,
       activatorEvent: activatorEvent2,
@@ -42604,7 +42631,7 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
     scrollableAncestors,
     scrollableAncestorRects
   });
-  const publicContext = import_react226.useMemo(() => {
+  const publicContext = import_react229.useMemo(() => {
     const context = {
       active,
       activeNode,
@@ -42626,7 +42653,7 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
     };
     return context;
   }, [active, activeNode, activeNodeRect, activatorEvent, collisions, containerNodeRect, dragOverlay, draggableNodes, droppableContainers, droppableRects, over, measureDroppableContainers, scrollableAncestors, scrollableAncestorRects, measuringConfiguration, measuringScheduled, windowRect]);
-  const internalContext = import_react226.useMemo(() => {
+  const internalContext = import_react229.useMemo(() => {
     const context = {
       activatorEvent,
       activators,
@@ -42642,17 +42669,17 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
     };
     return context;
   }, [activatorEvent, activators, active, activeNodeRect, dispatch, draggableDescribedById, draggableNodes, over, measureDroppableContainers]);
-  return import_react226.default.createElement(DndMonitorContext.Provider, {
+  return import_react229.default.createElement(DndMonitorContext.Provider, {
     value: registerMonitorListener
-  }, import_react226.default.createElement(InternalContext.Provider, {
+  }, import_react229.default.createElement(InternalContext.Provider, {
     value: internalContext
-  }, import_react226.default.createElement(PublicContext.Provider, {
+  }, import_react229.default.createElement(PublicContext.Provider, {
     value: publicContext
-  }, import_react226.default.createElement(ActiveDraggableContext.Provider, {
+  }, import_react229.default.createElement(ActiveDraggableContext.Provider, {
     value: transform
-  }, children)), import_react226.default.createElement(RestoreFocus, {
+  }, children)), import_react229.default.createElement(RestoreFocus, {
     disabled: (accessibility == null ? undefined : accessibility.restoreFocus) === false
-  })), import_react226.default.createElement(Accessibility, {
+  })), import_react229.default.createElement(Accessibility, {
     ...accessibility,
     hiddenTextDescribedById: draggableDescribedById
   }));
@@ -42671,7 +42698,7 @@ var DndContext = /* @__PURE__ */ import_react226.memo(function DndContext2(_ref)
     };
   }
 });
-var NullContext = /* @__PURE__ */ import_react226.createContext(null);
+var NullContext = /* @__PURE__ */ import_react229.createContext(null);
 var defaultRole = "button";
 var ID_PREFIX = "Draggable";
 function useDraggable(_ref) {
@@ -42690,14 +42717,14 @@ function useDraggable(_ref) {
     ariaDescribedById,
     draggableNodes,
     over
-  } = import_react226.useContext(InternalContext);
+  } = import_react229.useContext(InternalContext);
   const {
     role = defaultRole,
     roleDescription = "draggable",
     tabIndex = 0
   } = attributes != null ? attributes : {};
   const isDragging = (active == null ? undefined : active.id) === id;
-  const transform = import_react226.useContext(isDragging ? ActiveDraggableContext : NullContext);
+  const transform = import_react229.useContext(isDragging ? ActiveDraggableContext : NullContext);
   const [node2, setNodeRef] = useNodeRef();
   const [activatorNode, setActivatorNodeRef] = useNodeRef();
   const listeners = useSyntheticListeners(activators, id);
@@ -42717,7 +42744,7 @@ function useDraggable(_ref) {
       }
     };
   }, [draggableNodes, id]);
-  const memoizedAttributes = import_react226.useMemo(() => ({
+  const memoizedAttributes = import_react229.useMemo(() => ({
     role,
     tabIndex,
     "aria-disabled": disabled,
@@ -42740,7 +42767,7 @@ function useDraggable(_ref) {
   };
 }
 function useDndContext() {
-  return import_react226.useContext(PublicContext);
+  return import_react229.useContext(PublicContext);
 }
 var ID_PREFIX$1 = "Droppable";
 var defaultResizeObserverConfig = {
@@ -42759,13 +42786,13 @@ function useDroppable(_ref) {
     dispatch,
     over,
     measureDroppableContainers
-  } = import_react226.useContext(InternalContext);
-  const previous = import_react226.useRef({
+  } = import_react229.useContext(InternalContext);
+  const previous = import_react229.useRef({
     disabled
   });
-  const resizeObserverConnected = import_react226.useRef(false);
-  const rect = import_react226.useRef(null);
-  const callbackId = import_react226.useRef(null);
+  const resizeObserverConnected = import_react229.useRef(false);
+  const rect = import_react229.useRef(null);
+  const callbackId = import_react229.useRef(null);
   const {
     disabled: resizeObserverDisabled,
     updateMeasurementsFor,
@@ -42775,7 +42802,7 @@ function useDroppable(_ref) {
     ...resizeObserverConfig
   };
   const ids2 = useLatestValue(updateMeasurementsFor != null ? updateMeasurementsFor : id);
-  const handleResize = import_react226.useCallback(() => {
+  const handleResize = import_react229.useCallback(() => {
     if (!resizeObserverConnected.current) {
       resizeObserverConnected.current = true;
       return;
@@ -42792,7 +42819,7 @@ function useDroppable(_ref) {
     callback: handleResize,
     disabled: resizeObserverDisabled || !active
   });
-  const handleNodeChange = import_react226.useCallback((newElement, previousElement) => {
+  const handleNodeChange = import_react229.useCallback((newElement, previousElement) => {
     if (!resizeObserver) {
       return;
     }
@@ -42806,7 +42833,7 @@ function useDroppable(_ref) {
   }, [resizeObserver]);
   const [nodeRef, setNodeRef] = useNodeRef(handleNodeChange);
   const dataRef = useLatestValue(data);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     if (!resizeObserver || !nodeRef.current) {
       return;
     }
@@ -42814,7 +42841,7 @@ function useDroppable(_ref) {
     resizeObserverConnected.current = false;
     resizeObserver.observe(nodeRef.current);
   }, [nodeRef, resizeObserver]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     dispatch({
       type: Action.RegisterDroppable,
       element: {
@@ -42832,7 +42859,7 @@ function useDroppable(_ref) {
       id
     });
   }, [id]);
-  import_react226.useEffect(() => {
+  import_react229.useEffect(() => {
     if (disabled !== previous.current.disabled) {
       dispatch({
         type: Action.SetDroppableDisabled,
@@ -42854,7 +42881,7 @@ function useDroppable(_ref) {
 }
 
 // node_modules/@dnd-kit/sortable/dist/sortable.esm.js
-var import_react227 = __toESM(require_react(), 1);
+var import_react230 = __toESM(require_react(), 1);
 function arrayMove(array, from2, to) {
   const newArray = array.slice();
   newArray.splice(to < 0 ? newArray.length + to : to, 0, newArray.splice(from2, 1)[0]);
@@ -42977,7 +43004,7 @@ var rectSortingStrategy = (_ref) => {
   };
 };
 var ID_PREFIX2 = "Sortable";
-var Context = /* @__PURE__ */ import_react227.default.createContext({
+var Context = /* @__PURE__ */ import_react230.default.createContext({
   activeIndex: -1,
   containerId: ID_PREFIX2,
   disableTransforms: false,
@@ -43008,11 +43035,11 @@ function SortableContext(_ref) {
   } = useDndContext();
   const containerId = useUniqueId(ID_PREFIX2, id);
   const useDragOverlay = Boolean(dragOverlay.rect !== null);
-  const items = import_react227.useMemo(() => userDefinedItems.map((item) => typeof item === "object" && ("id" in item) ? item.id : item), [userDefinedItems]);
+  const items = import_react230.useMemo(() => userDefinedItems.map((item) => typeof item === "object" && ("id" in item) ? item.id : item), [userDefinedItems]);
   const isDragging = active != null;
   const activeIndex = active ? items.indexOf(active.id) : -1;
   const overIndex = over ? items.indexOf(over.id) : -1;
-  const previousItemsRef = import_react227.useRef(items);
+  const previousItemsRef = import_react230.useRef(items);
   const itemsHaveChanged = !itemsEqual(items, previousItemsRef.current);
   const disableTransforms = overIndex !== -1 && activeIndex === -1 || itemsHaveChanged;
   const disabled = normalizeDisabled(disabledProp);
@@ -43021,10 +43048,10 @@ function SortableContext(_ref) {
       measureDroppableContainers(items);
     }
   }, [itemsHaveChanged, items, isDragging, measureDroppableContainers]);
-  import_react227.useEffect(() => {
+  import_react230.useEffect(() => {
     previousItemsRef.current = items;
   }, [items]);
-  const contextValue = import_react227.useMemo(() => ({
+  const contextValue = import_react230.useMemo(() => ({
     activeIndex,
     containerId,
     disabled,
@@ -43035,7 +43062,7 @@ function SortableContext(_ref) {
     sortedRects: getSortedRects(items, droppableRects),
     strategy
   }), [activeIndex, containerId, disabled.draggable, disabled.droppable, disableTransforms, items, overIndex, droppableRects, useDragOverlay, strategy]);
-  return import_react227.default.createElement(Context.Provider, {
+  return import_react230.default.createElement(Context.Provider, {
     value: contextValue
   }, children);
 }
@@ -43091,8 +43118,8 @@ function useDerivedTransform(_ref) {
     node: node2,
     rect
   } = _ref;
-  const [derivedTransform, setDerivedtransform] = import_react227.useState(null);
-  const previousIndex = import_react227.useRef(index3);
+  const [derivedTransform, setDerivedtransform] = import_react230.useState(null);
+  const previousIndex = import_react230.useRef(index3);
   useIsomorphicLayoutEffect2(() => {
     if (!disabled && index3 !== previousIndex.current && node2.current) {
       const initial = rect.current;
@@ -43115,7 +43142,7 @@ function useDerivedTransform(_ref) {
       previousIndex.current = index3;
     }
   }, [disabled, index3, node2, rect]);
-  import_react227.useEffect(() => {
+  import_react230.useEffect(() => {
     if (derivedTransform) {
       setDerivedtransform(null);
     }
@@ -43144,10 +43171,10 @@ function useSortable(_ref) {
     overIndex,
     useDragOverlay,
     strategy: globalStrategy
-  } = import_react227.useContext(Context);
+  } = import_react230.useContext(Context);
   const disabled = normalizeLocalDisabled(localDisabled, globalDisabled);
   const index3 = items.indexOf(id);
-  const data = import_react227.useMemo(() => ({
+  const data = import_react230.useMemo(() => ({
     sortable: {
       containerId,
       index: index3,
@@ -43155,7 +43182,7 @@ function useSortable(_ref) {
     },
     ...customData
   }), [containerId, customData, index3, items]);
-  const itemsAfterCurrentSortable = import_react227.useMemo(() => items.slice(items.indexOf(id)), [items, id]);
+  const itemsAfterCurrentSortable = import_react230.useMemo(() => items.slice(items.indexOf(id)), [items, id]);
   const {
     rect,
     node: node2,
@@ -43210,7 +43237,7 @@ function useSortable(_ref) {
     overIndex
   }) : index3;
   const activeId = active == null ? undefined : active.id;
-  const previous = import_react227.useRef({
+  const previous = import_react230.useRef({
     activeId,
     items,
     newIndex,
@@ -43237,7 +43264,7 @@ function useSortable(_ref) {
     node: node2,
     rect
   });
-  import_react227.useEffect(() => {
+  import_react230.useEffect(() => {
     if (isSorting && previous.current.newIndex !== newIndex) {
       previous.current.newIndex = newIndex;
     }
@@ -43248,7 +43275,7 @@ function useSortable(_ref) {
       previous.current.items = items;
     }
   }, [isSorting, newIndex, containerId, items]);
-  import_react227.useEffect(() => {
+  import_react230.useEffect(() => {
     if (activeId === previous.current.activeId) {
       return;
     }
@@ -43428,7 +43455,7 @@ function isAfter(a2, b) {
 }
 
 // src/components/LayoutMappingModal/DependentGroupSortableCard.tsx
-var import_react228 = __toESM(require_react(), 1);
+var import_react231 = __toESM(require_react(), 1);
 var jsx_dev_runtime4 = __toESM(require_jsx_dev_runtime(), 1);
 var TransformCommandCard = ({
   transform,
@@ -43499,8 +43526,8 @@ var DependentGroupValueSortableCard = ({
   getDisplayValue
 }) => {
   const { state, effects, raiseError: raiseError2 } = useAppStore();
-  const [transformModalOpen, setTransformModalOpen] = import_react228.useState(false);
-  const [transforms, setTransforms] = import_react228.useState([]);
+  const [transformModalOpen, setTransformModalOpen] = import_react231.useState(false);
+  const [transforms, setTransforms] = import_react231.useState([]);
   const {
     attributes,
     listeners,
@@ -43881,6 +43908,7 @@ var DependentGroup = ({
   const { state, effects, raiseError: raiseError2 } = useAppStore();
   const handleAddDependentToGroup = (groupIndex2) => {
     effects.modal.dependentModal.setCurrentImageVariableId(variableConfig.id);
+    effects.modal.setCurrentSelectedMapId(layoutMap.id);
     effects.modal.dependentModal.setCurrentGroupIndex(groupIndex2);
     effects.modal.dependentModal.setIsOpen(true);
   };
@@ -44086,7 +44114,7 @@ var VariableCard = ({
   layoutMap
 }) => {
   const { state, raiseError: raiseError2, effects } = useAppStore();
-  const [isOpen, setIsOpen] = import_react229.useState(false);
+  const [isOpen, setIsOpen] = import_react232.useState(false);
   const variableImageConfig = state.studio.document.variables.find((v2) => v2.id === variableConfig.id);
   if (variableImageConfig == null) {
     raiseError2(Result.error(new Error("variableDocument is null")));
@@ -44200,9 +44228,9 @@ var LayoutConfigSection = ({
   mapConfig,
   index: index3
 }) => {
-  const [isOpen, setIsOpen] = import_react230.useState(false);
-  const [menuOpened, setMenuOpened] = import_react230.useState(false);
-  const [deleteModalOpen, setDeleteModalOpen] = import_react230.useState(false);
+  const [isOpen, setIsOpen] = import_react233.useState(false);
+  const [menuOpened, setMenuOpened] = import_react233.useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = import_react233.useState(false);
   const { effects: events2 } = useAppStore();
   return /* @__PURE__ */ jsx_dev_runtime8.jsxDEV(Paper, {
     p: "md",
@@ -44332,25 +44360,49 @@ var LayoutConfigSection = ({
 var jsx_dev_runtime9 = __toESM(require_jsx_dev_runtime(), 1);
 var LayoutImageMappingModal = ({ onExportCSV = () => console.log("Export CSV clicked") }) => {
   const { state, effects: events2, raiseError: raiseError2, enableToolbar } = useAppStore();
-  const imageVariables = import_react231.useMemo(() => {
+  const [validationReport, setValidationReport] = import_react234.useState(null);
+  const [isValidationModalOpen, setIsValidationModalOpen] = import_react234.useState(false);
+  const imageVariables = import_react234.useMemo(() => {
     return state.studio.document.variables.filter((variable) => variable.type === "image");
   }, [state.studio.document.variables]);
-  const imageVariableOptions = import_react231.useMemo(() => {
+  const imageVariableOptions = import_react234.useMemo(() => {
     return imageVariables.map((variable) => ({
       value: variable.id,
       label: variable.name
     }));
   }, [imageVariables]);
-  import_react231.useEffect(() => {
+  import_react234.useEffect(() => {
     const loadConfig = async () => {
-      if (!state.studio.isLayoutConfigLoaded) {
-        const result = await loadLayoutImageMapFromDoc();
-        console.log("result", result);
-        result.fold((config) => events2.studio.layoutImageMapping.load(config), () => raiseError2(result));
-      }
-      if (!state.studio.isDocumentLoaded) {
-        const result = await loadDocFromDoc();
-        result.fold((doc) => events2.studio.document.load(doc), () => raiseError2(result));
+      if (!state.studio.isLayoutConfigLoaded && !state.studio.isDocumentLoaded) {
+        const resultDoc = await loadDocFromDoc();
+        const resultLayoutMap = await loadLayoutImageMapFromDoc();
+        resultLayoutMap.fold((layoutMapArray) => {
+          resultDoc.fold((doc) => {
+            const combinedReport = {
+              removedLayoutIds: [],
+              removedVariables: [],
+              removedDependents: [],
+              removedVariableValues: []
+            };
+            const cleanedConfigArray = layoutMapArray.map((config) => {
+              const { cleanLayoutMap, report } = layoutMappingValidation(config, doc);
+              combinedReport.removedLayoutIds.push(...report.removedLayoutIds);
+              combinedReport.removedVariables.push(...report.removedVariables);
+              combinedReport.removedDependents.push(...report.removedDependents);
+              combinedReport.removedVariableValues.push(...report.removedVariableValues);
+              return cleanLayoutMap;
+            });
+            const hasRemovedItems = combinedReport.removedLayoutIds.length > 0 || combinedReport.removedVariables.length > 0 || combinedReport.removedDependents.length > 0 || combinedReport.removedVariableValues.length > 0;
+            if (hasRemovedItems) {
+              setValidationReport(combinedReport);
+              setIsValidationModalOpen(true);
+              events2.studio.layoutImageMapping.load(cleanedConfigArray);
+            } else {
+              events2.studio.layoutImageMapping.load(layoutMapArray);
+            }
+            events2.studio.document.load(doc);
+          }, raiseError2);
+        }, raiseError2);
       }
     };
     if (state.modal.isModalVisible)
@@ -44466,7 +44518,113 @@ var LayoutImageMappingModal = ({ onExportCSV = () => console.log("Export CSV cli
       /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(AddMappingImageVariableModal, {
         currentMapConfig: state.studio.layoutImageMapping.find((config) => config.id === state.modal.currentSelectedMapId) || null
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(AddDependentModal, {}, undefined, false, undefined, this)
+      /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(AddDependentModal, {}, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Modal, {
+        opened: isValidationModalOpen,
+        onClose: () => setIsValidationModalOpen(false),
+        title: /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Title, {
+          order: 4,
+          children: "Layout Mapping Validation"
+        }, undefined, false, undefined, this),
+        centered: true,
+        size: "lg",
+        children: /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Stack, {
+          gap: "md",
+          children: [
+            /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Alert, {
+              color: "yellow",
+              title: "Items Removed from Layout Mapping",
+              children: /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Text, {
+                children: "Values were deleted from the document and thus we also removed those values from your layout mapping."
+              }, undefined, false, undefined, this)
+            }, undefined, false, undefined, this),
+            validationReport && /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(jsx_dev_runtime9.Fragment, {
+              children: [
+                validationReport.removedLayoutIds.length > 0 && /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Stack, {
+                  gap: "xs",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Text, {
+                      fw: 600,
+                      children: "Removed Layout IDs:"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(List, {
+                      children: validationReport.removedLayoutIds.map((id, index3) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(List.Item, {
+                        children: id
+                      }, index3, false, undefined, this))
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this),
+                validationReport.removedVariables.length > 0 && /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Stack, {
+                  gap: "xs",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Text, {
+                      fw: 600,
+                      children: "Removed Variables:"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(List, {
+                      children: validationReport.removedVariables.map((id, index3) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(List.Item, {
+                        children: id
+                      }, index3, false, undefined, this))
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this),
+                validationReport.removedDependents.length > 0 && /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Stack, {
+                  gap: "xs",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Text, {
+                      fw: 600,
+                      children: "Removed Dependents:"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(List, {
+                      children: validationReport.removedDependents.map((item, index3) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(List.Item, {
+                        children: [
+                          "Variable ID: ",
+                          item.variableId,
+                          " (from Image Variable:",
+                          " ",
+                          item.imageVariableId,
+                          ")"
+                        ]
+                      }, index3, true, undefined, this))
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this),
+                validationReport.removedVariableValues.length > 0 && /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Stack, {
+                  gap: "xs",
+                  children: [
+                    /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Text, {
+                      fw: 600,
+                      children: "Removed Variable Values:"
+                    }, undefined, false, undefined, this),
+                    /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(List, {
+                      children: validationReport.removedVariableValues.map((item, index3) => /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(List.Item, {
+                        children: [
+                          "Value: ",
+                          item.value,
+                          " (from Image Variable:",
+                          " ",
+                          item.imageVariableId,
+                          ", Group:",
+                          " ",
+                          item.dependentGroupIndex,
+                          ")"
+                        ]
+                      }, index3, true, undefined, this))
+                    }, undefined, false, undefined, this)
+                  ]
+                }, undefined, true, undefined, this)
+              ]
+            }, undefined, true, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Group, {
+              justify: "flex-end",
+              children: /* @__PURE__ */ jsx_dev_runtime9.jsxDEV(Button, {
+                onClick: () => setIsValidationModalOpen(false),
+                children: "OK"
+              }, undefined, false, undefined, this)
+            }, undefined, false, undefined, this)
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this)
     ]
   }, undefined, true, undefined, this);
 };
@@ -44512,7 +44670,7 @@ var LoadingSpinner = dt.div`
 `;
 
 // src/components/Toolbar.tsx
-var import_react233 = __toESM(require_react(), 1);
+var import_react235 = __toESM(require_react(), 1);
 
 // src/studio/documentHandler.ts
 async function getCurrentDocumentState(studio2) {
@@ -44522,100 +44680,20 @@ async function loadDocumentFromJsonStr(studio2, document2) {
   return handleStudioFunc(studio2.document.load, document2);
 }
 
-// src/components/OldConverter/OldConverterModal.tsx
-var import_react232 = __toESM(require_react(), 1);
-var jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
-var OldConverterModal = ({
-  isConvertModalOpen,
-  onClose
-}) => {
-  const { effects, raiseError: raiseError2, state } = useAppStore();
-  const [selectedVariableId, setSelectedVariableId] = import_react232.useState(null);
-  const handleConvertConfirm = async () => {
-    if (selectedVariableId) {
-      try {
-        const result = await convertOldMap(selectedVariableId);
-        if (result && !result.isOk()) {
-          raiseError2(new Error(result.error?.message || "Failed to convert old map"));
-        }
-      } catch (error2) {
-        raiseError2(error2 instanceof Error ? error2 : new Error(String(error2)));
-      }
-      effects.studio.document.unload();
-      onClose();
-      setSelectedVariableId(null);
-    }
-  };
-  const handleConvertCancel = () => {
-    effects.studio.document.unload();
-    onClose();
-    setSelectedVariableId(null);
-  };
-  import_react232.useEffect(() => {
-    const loadConfig = async () => {
-      if (!state.studio.isDocumentLoaded) {
-        const result = await loadDocFromDoc();
-        result.fold((doc) => effects.studio.document.load(doc), () => raiseError2(result));
-      }
-    };
-    if (isConvertModalOpen) {
-      loadConfig();
-    } else {
-      effects.studio.document.unload();
-    }
-  }, [isConvertModalOpen]);
-  return /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Modal, {
-    opened: isConvertModalOpen,
-    onClose: handleConvertCancel,
-    title: "Select JSON Variable",
-    centered: true,
-    children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Stack, {
-      children: [
-        /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Text, {
-          size: "sm",
-          children: "Select a shortText variable containing the old JSON mapping format to convert."
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Select, {
-          label: "Variable",
-          placeholder: "Select a variable",
-          data: state.studio.document?.variables?.filter((v2) => v2.type === "shortText").map((v2) => ({ value: v2.id, label: v2.name })) || [],
-          value: selectedVariableId,
-          onChange: (value) => setSelectedVariableId(value)
-        }, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Group, {
-          justify: "flex-end",
-          mt: "md",
-          children: [
-            /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Button, {
-              variant: "outline",
-              onClick: handleConvertCancel,
-              children: "Cancel"
-            }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Button, {
-              onClick: handleConvertConfirm,
-              disabled: !selectedVariableId,
-              children: "Convert"
-            }, undefined, false, undefined, this)
-          ]
-        }, undefined, true, undefined, this)
-      ]
-    }, undefined, true, undefined, this)
-  }, undefined, false, undefined, this);
-};
-
 // src/components/Toolbar.tsx
-var jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime10 = __toESM(require_jsx_dev_runtime(), 1);
 function Toolbar() {
-  const [visible2, setVisible] = import_react233.useState(false);
-  const [isDownloadUploadModalOpen, setIsDownloadUploadModalOpen] = import_react233.useState(false);
-  const [isConvertModalOpen, setIsConvertModalOpen] = import_react233.useState(false);
-  const fileInputRef = import_react233.useRef(null);
+  const [visible2, setVisible] = import_react235.useState(false);
+  const [isDownloadUploadModalOpen, setIsDownloadUploadModalOpen] = import_react235.useState(false);
+  const [isConvertModalOpen, setIsConvertModalOpen] = import_react235.useState(false);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = import_react235.useState(false);
+  const [updateInfo, setUpdateInfo] = import_react235.useState(null);
+  const fileInputRef = import_react235.useRef(null);
   const { effects, raiseError: raiseError2, state, disableToolbar } = useAppStore();
   const handleTestError = () => {
     raiseError2(new Error("This is a test error message"));
   };
   const setVisibleIntercept = (value) => {
-    console.log(value, state.isToolbarEnabled);
     if (!state.isToolbarEnabled) {
       setVisible(false);
     }
@@ -44685,7 +44763,25 @@ function Toolbar() {
       event.target.value = "";
     }
   };
-  import_react233.useEffect(() => {
+  const handleDismissUpdate = () => {
+    if (updateInfo) {
+      localStorage.setItem("toolbarplus_last_notified_version", updateInfo.latestVersion);
+    }
+    setIsUpdateModalOpen(false);
+  };
+  import_react235.useEffect(() => {
+    const versionDiv = document.getElementById("toolbar-version");
+    if (versionDiv) {
+      const currentVersion = versionDiv.dataset.currentVersion;
+      const latestVersion = versionDiv.dataset.latestVersion;
+      if (currentVersion && latestVersion && currentVersion !== latestVersion) {
+        setUpdateInfo({
+          currentVersion,
+          latestVersion
+        });
+        setIsUpdateModalOpen(true);
+      }
+    }
     const handleMouseMove = (event) => {
       if (event.clientY <= 40) {
         setVisibleIntercept(true);
@@ -44704,14 +44800,14 @@ function Toolbar() {
     disableToolbar();
     effects.modal.showModal();
   };
-  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(jsx_dev_runtime11.Fragment, {
+  return /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(jsx_dev_runtime10.Fragment, {
     children: [
-      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Transition, {
+      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Transition, {
         mounted: visible2,
         transition: "slide-down",
         duration: 300,
         timingFunction: "ease",
-        children: (styles) => /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Box, {
+        children: (styles) => /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Box, {
           style: {
             ...styles,
             position: "fixed",
@@ -44728,50 +44824,50 @@ function Toolbar() {
             borderBottom: "1px solid #373A40"
           },
           onMouseLeave: () => setVisible(false),
-          children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Group, {
+          children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Group, {
             gap: "lg",
             children: [
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Tooltip, {
+              /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Tooltip, {
                 label: "Upload/Download Document",
                 position: "bottom",
                 withArrow: true,
-                children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ActionIcon, {
+                children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ActionIcon, {
                   variant: "filled",
                   color: "blue",
                   size: "lg",
                   "aria-label": "Upload/Download",
                   onClick: handleUploadDownloadClick,
-                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(IconArrowsTransferUpDown, {
+                  children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(IconArrowsTransferUpDown, {
                     size: 20
                   }, undefined, false, undefined, this)
                 }, undefined, false, undefined, this)
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Tooltip, {
+              /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Tooltip, {
                 label: "Layout Image Mapper",
                 position: "bottom",
                 withArrow: true,
-                children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ActionIcon, {
+                children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ActionIcon, {
                   variant: "filled",
                   color: "blue",
                   size: "lg",
                   "aria-label": "Layout",
                   onClick: handleLayoutClick,
-                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(IconMapBolt, {
+                  children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(IconMapBolt, {
                     size: 20
                   }, undefined, false, undefined, this)
                 }, undefined, false, undefined, this)
               }, undefined, false, undefined, this),
-              /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Tooltip, {
+              /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Tooltip, {
                 label: "Test Error",
                 position: "bottom",
                 withArrow: true,
-                children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(ActionIcon, {
+                children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(ActionIcon, {
                   variant: "filled",
                   color: "red",
                   size: "lg",
                   "aria-label": "Test Error",
                   onClick: handleTestError,
-                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(IconBug, {
+                  children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(IconBug, {
                     size: 20
                   }, undefined, false, undefined, this)
                 }, undefined, false, undefined, this)
@@ -44780,44 +44876,44 @@ function Toolbar() {
           }, undefined, true, undefined, this)
         }, undefined, false, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Modal, {
+      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Modal, {
         opened: isDownloadUploadModalOpen,
         onClose: () => setIsDownloadUploadModalOpen(false),
         title: "Document Upload/Download",
         centered: true,
-        children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Stack, {
+        children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Stack, {
           children: [
-            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Text, {
+            /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Text, {
               size: "sm",
               children: "Uploading and downloading only transfers the JSON not assets."
             }, undefined, false, undefined, this),
-            /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Group, {
+            /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Group, {
               children: [
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+                /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Button, {
                   onClick: handleDownload,
                   color: "blue",
-                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Group, {
+                  children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Group, {
                     gap: "xs",
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(IconDownload, {
+                      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(IconDownload, {
                         size: 20
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("span", {
                         children: "Download"
                       }, undefined, false, undefined, this)
                     ]
                   }, undefined, true, undefined, this)
                 }, undefined, false, undefined, this),
-                /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Button, {
+                /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Button, {
                   onClick: handleUpload,
                   color: "green",
-                  children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Group, {
+                  children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Group, {
                     gap: "xs",
                     children: [
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(IconUpload, {
+                      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(IconUpload, {
                         size: 20
                       }, undefined, false, undefined, this),
-                      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("span", {
+                      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("span", {
                         children: "Upload"
                       }, undefined, false, undefined, this)
                     ]
@@ -44828,27 +44924,68 @@ function Toolbar() {
           ]
         }, undefined, true, undefined, this)
       }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV("input", {
+      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Modal, {
+        opened: isUpdateModalOpen,
+        onClose: () => setIsUpdateModalOpen(false),
+        title: "Update Available",
+        centered: true,
+        children: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Stack, {
+          children: [
+            /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Text, {
+              children: "A new version of Studio Toolbar Plus is available!"
+            }, undefined, false, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Text, {
+              size: "sm",
+              children: [
+                "Current version: ",
+                updateInfo?.currentVersion,
+                /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("br", {}, undefined, false, undefined, this),
+                "Latest version: ",
+                updateInfo?.latestVersion
+              ]
+            }, undefined, true, undefined, this),
+            /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Group, {
+              justify: "space-between",
+              mt: "md",
+              children: [
+                /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Button, {
+                  onClick: handleDismissUpdate,
+                  variant: "subtle",
+                  color: "gray",
+                  children: "Dismiss"
+                }, undefined, false, undefined, this),
+                /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(Button, {
+                  component: "a",
+                  href: "https://github.com/spicy-labs/studio-toolbar-plus/",
+                  target: "_blank",
+                  rightSection: /* @__PURE__ */ jsx_dev_runtime10.jsxDEV(IconExternalLink, {
+                    size: 16
+                  }, undefined, false, undefined, this),
+                  color: "blue",
+                  children: "Download Update"
+                }, undefined, false, undefined, this)
+              ]
+            }, undefined, true, undefined, this)
+          ]
+        }, undefined, true, undefined, this)
+      }, undefined, false, undefined, this),
+      /* @__PURE__ */ jsx_dev_runtime10.jsxDEV("input", {
         type: "file",
         ref: fileInputRef,
         style: { display: "none" },
         accept: ".json",
         onChange: handleFileChange
-      }, undefined, false, undefined, this),
-      /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(OldConverterModal, {
-        isConvertModalOpen,
-        onClose: () => setIsConvertModalOpen(false)
       }, undefined, false, undefined, this)
     ]
   }, undefined, true, undefined, this);
 }
 
 // src/components/AlertsContainer.tsx
-var import_react234 = __toESM(require_react(), 1);
-var jsx_dev_runtime12 = __toESM(require_jsx_dev_runtime(), 1);
+var import_react236 = __toESM(require_react(), 1);
+var jsx_dev_runtime11 = __toESM(require_jsx_dev_runtime(), 1);
 function AlertsContainer() {
   const { alerts, dismissAlert } = useAppStore();
-  import_react234.useEffect(() => {
+  import_react236.useEffect(() => {
     const timers = [];
     alerts.forEach((alert) => {
       const timer = setTimeout(() => {
@@ -44863,7 +45000,7 @@ function AlertsContainer() {
   if (alerts.length === 0) {
     return null;
   }
-  return /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Box, {
+  return /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Box, {
     style: {
       position: "fixed",
       top: "20px",
@@ -44871,10 +45008,10 @@ function AlertsContainer() {
       zIndex: 1001,
       width: "300px"
     },
-    children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Stack, {
+    children: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Stack, {
       gap: "md",
-      children: alerts.map((alert) => /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Alert, {
-        icon: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(IconInfoCircle, {
+      children: alerts.map((alert) => /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(Alert, {
+        icon: /* @__PURE__ */ jsx_dev_runtime11.jsxDEV(IconInfoCircle, {
           size: "1rem"
         }, undefined, false, undefined, this),
         title: "Toolbar Error",
@@ -44894,7 +45031,7 @@ function AlertsContainer() {
 }
 
 // src/index.tsx
-var jsx_dev_runtime13 = __toESM(require_jsx_dev_runtime(), 1);
+var jsx_dev_runtime12 = __toESM(require_jsx_dev_runtime(), 1);
 var theme = createTheme({
   primaryColor: "blue",
   defaultRadius: "sm",
@@ -44919,16 +45056,16 @@ async function renderToolbar() {
     document.body.appendChild(toolbarContainer);
     window.toolbarInstance = import_client.createRoot(toolbarContainer);
   }
-  window.rootInstance.render(/* @__PURE__ */ jsx_dev_runtime13.jsxDEV(import_react235.default.StrictMode, {
-    children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(LayoutImageMappingModal, {
+  window.rootInstance.render(/* @__PURE__ */ jsx_dev_runtime12.jsxDEV(import_react237.default.StrictMode, {
+    children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(LayoutImageMappingModal, {
       onExportCSV: () => console.log("Look")
     }, undefined, false, undefined, this)
   }, undefined, false, undefined, this));
-  window.toolbarInstance.render(/* @__PURE__ */ jsx_dev_runtime13.jsxDEV(import_react235.default.StrictMode, {
-    children: /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(MantineProvider, {
+  window.toolbarInstance.render(/* @__PURE__ */ jsx_dev_runtime12.jsxDEV(import_react237.default.StrictMode, {
+    children: /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(MantineProvider, {
       children: [
-        /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(Toolbar, {}, undefined, false, undefined, this),
-        /* @__PURE__ */ jsx_dev_runtime13.jsxDEV(AlertsContainer, {}, undefined, false, undefined, this)
+        /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(Toolbar, {}, undefined, false, undefined, this),
+        /* @__PURE__ */ jsx_dev_runtime12.jsxDEV(AlertsContainer, {}, undefined, false, undefined, this)
       ]
     }, undefined, true, undefined, this)
   }, undefined, false, undefined, this));
@@ -44937,4 +45074,4 @@ setTimeout(() => {
   renderToolbar();
 }, 5000);
 
-//# debugId=159A266AD04FBFAB64756E2164756E21
+//# debugId=D2B5082024B63DD164756E2164756E21
